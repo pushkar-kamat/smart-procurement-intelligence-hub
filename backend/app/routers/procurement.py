@@ -18,7 +18,7 @@ PROC=Depends(roles('procurement'))
 FIN=Depends(roles('finance_admin'))
 REQ=Depends(roles('requester'))
 
-from app.services.intelligence import money, calculate_line
+from app.services.intelligence import money, calculate_line, analyze_price
 
 @router.get('/me')
 def me(user=USER): return row(user)
@@ -118,7 +118,8 @@ def set_quote(db,req,q,data):
         item=items[line.requisition_item_id]
         try: values=calculate_line(line.unit_price,item.quantity,line.tax_percent,line.discount)
         except ValueError as e: raise HTTPException(422,str(e))
-        analysis={'status':'NOT_EVALUATED','reason':'Price anomaly analysis is added in Member 1 Stage 2.','sample_count':0,'anomaly_flag':False,'q1':None,'q3':None}
+        history=list(db.scalars(select(PriceHistory.unit_price).where(PriceHistory.item_name==item.item_name,PriceHistory.unit==item.unit,PriceHistory.observed_at<=data.quotation_date)))
+        analysis=analyze_price(line.unit_price,history)
         db.add(QuotationItem(quotation_id=q.id,requisition_item_id=item.id,unit_price=line.unit_price,quantity=item.quantity,tax=values['tax'],discount=values['discount'],line_total=values['total'],analysis=analysis))
         q.subtotal+=values['subtotal'];q.tax_total+=values['tax'];q.discount_total+=values['discount'];q.grand_total+=values['total']
     db.flush()
@@ -159,4 +160,39 @@ def comparison(id:int,db:Session=DB,user=USER):
     req=request_for(db,id,user);data=detail(db,req)
     data['lowest_total']=min((float(q['grand_total']) for q in data['quotations']),default=None)
     return data
+
+@router.post('/requisitions/{id}/send-for-approval')
+def send_for_approval(id:int,data:SelectionIn,db:Session=DB,user=PROC):
+    req=request_for(db,id,user,True);state(req,'COMPARISON_READY')
+    q=db.scalar(select(Quotation).where(Quotation.requisition_id==id,Quotation.vendor_id==data.vendor_id))
+    if not q:raise HTTPException(422,'Select a vendor with a complete quotation')
+    if not fetch(db,Vendor,data.vendor_id).active:raise HTTPException(409,'Selected vendor is inactive')
+    if q.valid_until and q.valid_until<date.today():raise HTTPException(409,'Selected quotation has expired')
+    rules=list(db.scalars(select(ApprovalRule).where(ApprovalRule.active==True,ApprovalRule.min_amount<=q.grand_total).order_by(ApprovalRule.level)))
+    rules=[x for x in rules if x.max_amount is None or q.grand_total<x.max_amount]
+    if not rules or len({x.level for x in rules})!=len(rules):raise HTTPException(409,'Approval policy is missing or ambiguous')
+    req.approval_plan=[{'level':x.level,'role':x.required_role,'name':x.name} for x in rules]
+    req.preferred_vendor_id=data.vendor_id;req.status='PENDING_APPROVAL'
+    audit(db,user,'PREFERRED_VENDOR_PROPOSED',req,details=data.model_dump());audit(db,user,'SENT_FOR_APPROVAL',req,details={'plan':req.approval_plan});return row(req)
+
+@router.get('/approvals/inbox')
+def inbox(db:Session=DB,user=Depends(roles('approver','finance_admin'))):
+    results=[]
+    for req in db.scalars(select(Requisition).where(Requisition.status=='PENDING_APPROVAL')):
+        done=len(list(db.scalars(select(Approval).where(Approval.requisition_id==req.id))))
+        if req.approval_plan[done]['role']==user.role:results.append(row(req))
+    return results
+
+@router.post('/requisitions/{id}/approval')
+def approve(id:int,data:DecisionIn,db:Session=DB,user=Depends(roles('approver','finance_admin'))):
+    req=request_for(db,id,user,True);state(req,'PENDING_APPROVAL')
+    if user.id==req.requester_id:raise HTTPException(403,'You cannot approve your own requisition')
+    previous=list(db.scalars(select(Approval).where(Approval.requisition_id==id)))
+    if any(x.approver_id==user.id for x in previous):raise HTTPException(409,'A different person must approve the next level')
+    step=req.approval_plan[len(previous)]
+    if step['role']!=user.role:raise HTTPException(403,'This approval level requires '+step['role'])
+    db.add(Approval(requisition_id=id,approver_id=user.id,approval_level=step['level'],decision=data.decision,comment=data.comment))
+    if data.decision=='REJECTED':req.status='REJECTED'
+    elif len(previous)+1==len(req.approval_plan):req.status='APPROVED'
+    audit(db,user,'APPROVAL_'+data.decision,req,details={'level':step['level'],'comment':data.comment});db.flush();return detail(db,req)
 

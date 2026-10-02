@@ -1,18 +1,18 @@
-# Member2 Stage1 Quotations Comparison
+# Member1 Stage2 Price Anomaly Approvals
 
-**Owner:** Member 2
+**Owner:** Member 1
 
-Adds vendor quotation capture/editing, line calculations and the first comparison view. Price anomaly and vendor risk are intentionally added in later stages.
+Adds explainable price-anomaly analysis and the multi-level human approval workflow.
 
 ## Suggested commit
-`feat: add quotation capture and comparison workflow`
+`feat: add price anomaly analysis and approval workflow`
 
 ## Verify before committing
-- `Use Swagger to add quotations from invited vendors`
-- `Call POST /requisitions/{id}/recalculate and GET /comparison`
+- `Re-enter a quotation and inspect line analysis`
+- `Send comparison for approval and test approval levels`
 
 ## Viva ownership
-- Quotation must cover every requisition item exactly once
-- Tax/discount/total calculation
-- Quotation state locking
+- Median and configured threshold
+- IQR upper boundary when enough history exists
+- Self-approval and repeated approver protections
 
