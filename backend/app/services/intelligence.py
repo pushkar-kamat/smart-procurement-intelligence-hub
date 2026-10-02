@@ -28,3 +28,17 @@ def analyze_price(price,history,threshold=None):
     result.update(status='FLAGGED' if flagged else 'NORMAL',anomaly_flag=flagged,reason=f'Quoted INR {float(price):,.2f}; historical median INR {ref:,.2f}; {deviation:+.2f}%; '+('; '.join(reasons) if reasons else 'within evaluated boundaries')+'.')
     return result
 
+WEIGHTS={'late_delivery':30,'quotation_anomaly':25,'disputed_order':20,'incomplete_order':15,'invoice_mismatch':10}
+def vendor_risk(facts):
+    pairs={'late_delivery':('late_deliveries','completed_orders'),'quotation_anomaly':('anomalous_lines','quotation_lines'),'disputed_order':('disputed_orders','total_orders'),'incomplete_order':('incomplete_orders','total_orders'),'invoice_mismatch':('invoice_mismatches','invoiced_orders')}
+    factors=[]
+    for name,(n,d) in pairs.items():
+        den=facts.get(d,0); num=facts.get(n,0)
+        rate=min(1,num/den) if den else None
+        factors.append({'factor':name,'numerator':num,'denominator':den,'rate_percent':round(rate*100,2) if rate is not None else None,'weight':WEIGHTS[name],'contribution':round(rate*WEIGHTS[name],2) if rate is not None else None})
+    if facts.get('total_orders',0)<3 or any(f['rate_percent'] is None for f in factors):
+        return {'score':None,'band':'INSUFFICIENT_HISTORY','factors':factors,'reason':'Insufficient completed history for all five factors; review the available evidence manually.'}
+    score=round(sum(x['contribution'] for x in factors),2)
+    band='Low' if score<=settings.risk_low else 'Medium' if score<=settings.risk_medium else 'High'
+    return {'score':score,'band':band,'factors':factors,'reason':'; '.join(f"{f['factor'].replace('_',' ')}: {f['rate_percent']}% × {f['weight']}% = {f['contribution']} points" for f in factors)+'. Human approval required.'}
+
