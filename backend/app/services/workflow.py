@@ -1,8 +1,10 @@
+from datetime import date
 from decimal import Decimal
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from app.models.entities import *
+from app.services.intelligence import vendor_risk
 
 def row(obj): return jsonable_encoder({c.name:getattr(obj,c.name) for c in obj.__table__.columns},custom_encoder={Decimal:float})
 
@@ -31,6 +33,33 @@ def quote_view(db,q):
     result['items']=[row(i) for i in db.scalars(select(QuotationItem).where(QuotationItem.quotation_id==q.id).order_by(QuotationItem.id))]
     result['documents']=[{k:v for k,v in row(d).items() if k!='storage_key'} for d in db.scalars(select(Document).where(Document.quotation_id==q.id))]
     return result
+
+def risk_for(db,vendor_id):
+    history=db.scalar(select(VendorHistory).where(VendorHistory.vendor_id==vendor_id))
+    facts=row(history) if history else {}
+    # Synthetic baseline facts plus committed workflow observations, without counting issued orders as overdue.
+    qs=list(db.scalars(select(Quotation).where(Quotation.vendor_id==vendor_id)))
+    lines=list(db.scalars(select(QuotationItem).where(QuotationItem.quotation_id.in_([q.id for q in qs])))) if qs else []
+    facts['quotation_lines']=facts.get('quotation_lines',0)+len(lines)
+    facts['anomalous_lines']=facts.get('anomalous_lines',0)+sum(i.analysis['anomaly_flag'] for i in lines)
+    pos=list(db.scalars(select(PurchaseOrder).where(PurchaseOrder.vendor_id==vendor_id)))
+    for po in pos:
+        deliveries=list(db.scalars(select(Delivery).where(Delivery.purchase_order_id==po.id)))
+        completed=next((d for d in deliveries if d.status=='DELIVERED'),None)
+        age=(date.today()-po.issued_at.date()).days
+        overdue=age>po.snapshot_json['quotation']['delivery_days']
+        if completed or overdue:
+            facts['total_orders']=facts.get('total_orders',0)+1
+            facts['incomplete_orders']=facts.get('incomplete_orders',0)+int(not completed)
+        if completed:
+            facts['completed_orders']=facts.get('completed_orders',0)+1
+            late=(completed.delivered_at-po.issued_at.date()).days>po.snapshot_json['quotation']['delivery_days']
+            facts['late_deliveries']=facts.get('late_deliveries',0)+int(late)
+        inv=db.scalar(select(Invoice).where(Invoice.purchase_order_id==po.id))
+        if inv:
+            facts['invoiced_orders']=facts.get('invoiced_orders',0)+1
+            facts['invoice_mismatches']=facts.get('invoice_mismatches',0)+int(inv.mismatch_flag)
+    return vendor_risk(facts)
 
 def detail(db,req):
     result=row(req)

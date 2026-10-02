@@ -158,6 +158,7 @@ def recalculate(id:int,db:Session=DB,user=PROC):
 @router.get('/requisitions/{id}/comparison')
 def comparison(id:int,db:Session=DB,user=USER):
     req=request_for(db,id,user);data=detail(db,req)
+    for q in data['quotations']:q['risk']=risk_for(db,q['vendor_id'])
     data['lowest_total']=min((float(q['grand_total']) for q in data['quotations']),default=None)
     return data
 
@@ -195,4 +196,12 @@ def approve(id:int,data:DecisionIn,db:Session=DB,user=Depends(roles('approver','
     if data.decision=='REJECTED':req.status='REJECTED'
     elif len(previous)+1==len(req.approval_plan):req.status='APPROVED'
     audit(db,user,'APPROVAL_'+data.decision,req,details={'level':step['level'],'comment':data.comment});db.flush();return detail(db,req)
+
+@router.get('/vendors/{id}/risk')
+def risk(id:int,db:Session=DB,user=USER): fetch(db,Vendor,id);return risk_for(db,id)
+
+@router.get('/requisitions/{id}/audit')
+def logs(id:int,db:Session=DB,user=USER):
+    request_for(db,id,user)
+    return [dict(row(x),actor=fetch(db,Profile,x.actor_user_id).name if x.actor_user_id else 'Seed') for x in db.scalars(select(AuditLog).where(AuditLog.requisition_id==id).order_by(AuditLog.id))]
 
