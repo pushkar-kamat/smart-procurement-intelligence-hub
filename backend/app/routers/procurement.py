@@ -40,3 +40,70 @@ def update_profile(id:int,data:ProfileUpdate,db:Session=DB,user=FIN):
 @router.get('/approval-rules')
 def approval_rules(db:Session=DB,user=USER): return [row(x) for x in db.scalars(select(ApprovalRule).where(ApprovalRule.active==True).order_by(ApprovalRule.level))]
 
+@router.get('/requisitions')
+def requisitions(db:Session=DB,user=USER):
+    query=select(Requisition).order_by(Requisition.created_at.desc())
+    if user.role=='requester': query=query.where(Requisition.requester_id==user.id)
+    return [row(x) for x in db.scalars(query.limit(500))]
+
+def write_items(db,req,items):
+    total=Decimal('0')
+    for item in items:
+        amount=money(item.quantity*item.estimated_unit_price);total+=amount
+        db.add(RequisitionItem(requisition_id=req.id,estimated_line_total=amount,**item.model_dump()))
+    req.estimated_total=money(total)
+
+@router.post('/requisitions',status_code=201)
+def create_requisition(data:RequisitionIn,db:Session=DB,user=REQ):
+    fetch(db,Department,data.department_id)
+    if user.department_id and user.department_id!=data.department_id: raise HTTPException(403,'Use your assigned department')
+    req=Requisition(requester_id=user.id,estimated_total=0,**data.model_dump(exclude={'items'}));db.add(req);db.flush()
+    write_items(db,req,data.items);audit(db,user,'REQUISITION_CREATED',req);db.flush();return detail(db,req)
+
+@router.get('/requisitions/{id}')
+def get_requisition(id:int,db:Session=DB,user=USER): return detail(db,request_for(db,id,user))
+
+@router.put('/requisitions/{id}')
+def edit_requisition(id:int,data:RequisitionIn,db:Session=DB,user=REQ):
+    req=request_for(db,id,user,True);state(req,'DRAFT');fetch(db,Department,data.department_id)
+    if user.department_id and user.department_id!=data.department_id: raise HTTPException(403,'Use your assigned department')
+    for k,v in data.model_dump(exclude={'items'}).items():setattr(req,k,v)
+    db.execute(delete(RequisitionItem).where(RequisitionItem.requisition_id==id));write_items(db,req,data.items)
+    audit(db,user,'REQUISITION_EDITED',req);db.flush();return detail(db,req)
+
+@router.post('/requisitions/{id}/submit')
+def submit(id:int,db:Session=DB,user=REQ):
+    req=request_for(db,id,user,True);state(req,'DRAFT')
+    if req.estimated_total<=0:raise HTTPException(422,'At least one valid line item is required')
+    req.status='SUBMITTED';req.submitted_at=now();audit(db,user,'REQUISITION_SUBMITTED',req);return row(req)
+
+@router.post('/requisitions/{id}/cancel')
+def cancel(id:int,data:CommentIn,db:Session=DB,user=REQ):
+    req=request_for(db,id,user,True);state(req,'DRAFT','SUBMITTED');req.status='CANCELLED';audit(db,user,'REQUISITION_CANCELLED',req,details=data.model_dump());return row(req)
+
+@router.get('/vendors')
+def vendors(db:Session=DB,user=USER): return [row(x) for x in db.scalars(select(Vendor).order_by(Vendor.name))]
+
+@router.post('/vendors',status_code=201)
+def create_vendor(data:VendorIn,db:Session=DB,user=PROC):
+    v=Vendor(**data.model_dump());db.add(v);db.flush();audit(db,user,'VENDOR_CREATED',entity=v);return row(v)
+
+@router.put('/vendors/{id}')
+def update_vendor(id:int,data:VendorIn,db:Session=DB,user=PROC):
+    v=fetch(db,Vendor,id)
+    for k,value in data.model_dump().items():setattr(v,k,value)
+    audit(db,user,'VENDOR_UPDATED',entity=v,details={'active':v.active});return row(v)
+
+@router.get('/requisitions/{id}/invitations')
+def invitations(id:int,db:Session=DB,user=USER):return detail(db,request_for(db,id,user))['invitations']
+
+@router.post('/requisitions/{id}/invitations',status_code=201)
+def invite(id:int,data:InviteIn,db:Session=DB,user=PROC):
+    req=request_for(db,id,user,True);state(req,'SUBMITTED','SOURCING','QUOTATIONS_RECEIVED')
+    v=fetch(db,Vendor,data.vendor_id)
+    if not v.active:raise HTTPException(409,'Vendor is inactive')
+    if db.scalar(select(Invitation).where(Invitation.requisition_id==id,Invitation.vendor_id==v.id)):raise HTTPException(409,'Vendor already invited')
+    i=Invitation(requisition_id=id,vendor_id=v.id);db.add(i)
+    if req.status=='SUBMITTED':req.status='SOURCING'
+    audit(db,user,'VENDOR_INVITED',req,details={'vendor_id':v.id});db.flush();return row(i)
+
