@@ -1,18 +1,18 @@
-# Member1 Stage1 Requisition Vendors
+# Member2 Stage1 Quotations Comparison
 
-**Owner:** Member 1
+**Owner:** Member 2
 
-Adds requester requisition lifecycle, vendor master data and vendor invitation/sourcing state transitions.
+Adds vendor quotation capture/editing, line calculations and the first comparison view. Price anomaly and vendor risk are intentionally added in later stages.
 
 ## Suggested commit
-`feat: add requisition vendor and invitation workflow`
+`feat: add quotation capture and comparison workflow`
 
 ## Verify before committing
-- `python -m pytest -v`
-- `Use Swagger to create, edit, submit and invite a vendor`
+- `Use Swagger to add quotations from invited vendors`
+- `Call POST /requisitions/{id}/recalculate and GET /comparison`
 
 ## Viva ownership
-- DRAFT → SUBMITTED → SOURCING states
-- Department/requester authorization
-- Vendor active/duplicate invitation guards
+- Quotation must cover every requisition item exactly once
+- Tax/discount/total calculation
+- Quotation state locking
 
