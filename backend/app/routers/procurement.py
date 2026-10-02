@@ -107,3 +107,56 @@ def invite(id:int,data:InviteIn,db:Session=DB,user=PROC):
     if req.status=='SUBMITTED':req.status='SOURCING'
     audit(db,user,'VENDOR_INVITED',req,details={'vendor_id':v.id});db.flush();return row(i)
 
+def set_quote(db,req,q,data):
+    items={x.id:x for x in db.scalars(select(RequisitionItem).where(RequisitionItem.requisition_id==req.id))}
+    if len(data.items)!=len(items) or {x.requisition_item_id for x in data.items}!=set(items):raise HTTPException(422,'Quote must cover each requisition item exactly once')
+    for k,v in data.model_dump(exclude={'items'}).items():setattr(q,k,v)
+    q.subtotal=q.tax_total=q.discount_total=q.grand_total=Decimal('0')
+    db.add(q);db.flush()
+    db.execute(delete(QuotationItem).where(QuotationItem.quotation_id==q.id))
+    for line in data.items:
+        item=items[line.requisition_item_id]
+        try: values=calculate_line(line.unit_price,item.quantity,line.tax_percent,line.discount)
+        except ValueError as e: raise HTTPException(422,str(e))
+        analysis={'status':'NOT_EVALUATED','reason':'Price anomaly analysis is added in Member 1 Stage 2.','sample_count':0,'anomaly_flag':False,'q1':None,'q3':None}
+        db.add(QuotationItem(quotation_id=q.id,requisition_item_id=item.id,unit_price=line.unit_price,quantity=item.quantity,tax=values['tax'],discount=values['discount'],line_total=values['total'],analysis=analysis))
+        q.subtotal+=values['subtotal'];q.tax_total+=values['tax'];q.discount_total+=values['discount'];q.grand_total+=values['total']
+    db.flush()
+
+@router.post('/requisitions/{id}/quotations',status_code=201)
+def quotation(id:int,data:QuoteIn,db:Session=DB,user=PROC):
+    req=request_for(db,id,user,True);state(req,'SOURCING','QUOTATIONS_RECEIVED','COMPARISON_READY')
+    v=fetch(db,Vendor,data.vendor_id)
+    if not v.active:raise HTTPException(409,'Vendor is inactive')
+    invitation=db.scalar(select(Invitation).where(Invitation.requisition_id==id,Invitation.vendor_id==v.id))
+    if not invitation:raise HTTPException(409,'Invite this vendor first')
+    if db.scalar(select(Quotation).where(Quotation.requisition_id==id,Quotation.vendor_id==v.id)):raise HTTPException(409,'Vendor quote already exists; edit it instead')
+    q=Quotation(requisition_id=id);set_quote(db,req,q,data)
+    invitation.status='RESPONDED';invitation.response_at=now();req.status='QUOTATIONS_RECEIVED'
+    audit(db,user,'QUOTATION_ADDED',req,details={'quotation_id':q.id,'total':float(q.grand_total)});return quote_view(db,q)
+
+@router.put('/quotations/{id}')
+def edit_quote(id:int,data:QuoteIn,db:Session=DB,user=PROC):
+    q=fetch(db,Quotation,id);req=request_for(db,q.requisition_id,user,True);state(req,'QUOTATIONS_RECEIVED','COMPARISON_READY')
+    if q.vendor_id!=data.vendor_id:raise HTTPException(422,'Vendor cannot be changed')
+    set_quote(db,req,q,data);req.status='QUOTATIONS_RECEIVED';audit(db,user,'QUOTATION_UPDATED',req,details={'quotation_id':id});return quote_view(db,q)
+
+@router.get('/requisitions/{id}/quotations')
+def quotes(id:int,db:Session=DB,user=USER):return detail(db,request_for(db,id,user))['quotations']
+
+@router.get('/quotations/{id}')
+def quote_detail(id:int,db:Session=DB,user=USER):
+    q=fetch(db,Quotation,id);request_for(db,q.requisition_id,user);return quote_view(db,q)
+
+@router.post('/requisitions/{id}/recalculate')
+def recalculate(id:int,db:Session=DB,user=PROC):
+    req=request_for(db,id,user,True);state(req,'QUOTATIONS_RECEIVED','COMPARISON_READY')
+    if not db.scalar(select(Quotation).where(Quotation.requisition_id==id)):raise HTTPException(409,'At least one complete quotation required')
+    req.status='COMPARISON_READY';audit(db,user,'COMPARISON_GENERATED',req);return comparison(id,db,user)
+
+@router.get('/requisitions/{id}/comparison')
+def comparison(id:int,db:Session=DB,user=USER):
+    req=request_for(db,id,user);data=detail(db,req)
+    data['lowest_total']=min((float(q['grand_total']) for q in data['quotations']),default=None)
+    return data
+
