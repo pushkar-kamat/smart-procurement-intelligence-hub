@@ -1,14 +1,18 @@
-# Shared Foundation
+# Member1 Stage1 Requisition Vendors
 
-Purpose: establish the shared project skeleton before either member adds owned workflow features.
+**Owner:** Member 1
 
-Includes: database schema/migrations, Supabase auth plumbing, common API contracts, shared workflow helpers, seed data, frontend login shell, documentation templates and project configuration.
+Adds requester requisition lifecycle, vendor master data and vendor invitation/sourcing state transitions.
 
-Suggested commit message:
-`chore: establish shared procurement project foundation`
+## Suggested commit
+`feat: add requisition vendor and invitation workflow`
 
-Run after applying:
-- `cd backend && python -m pytest -v`
-- `cd frontend && npm run build`
+## Verify before committing
+- `python -m pytest -v`
+- `Use Swagger to create, edit, submit and invite a vendor`
 
-This is a shared foundation commit and should not be presented as either member's individual feature work.
+## Viva ownership
+- DRAFT → SUBMITTED → SOURCING states
+- Department/requester authorization
+- Vendor active/duplicate invitation guards
+
