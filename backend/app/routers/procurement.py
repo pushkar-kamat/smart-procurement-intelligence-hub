@@ -205,3 +205,21 @@ def logs(id:int,db:Session=DB,user=USER):
     request_for(db,id,user)
     return [dict(row(x),actor=fetch(db,Profile,x.actor_user_id).name if x.actor_user_id else 'Seed') for x in db.scalars(select(AuditLog).where(AuditLog.requisition_id==id).order_by(AuditLog.id))]
 
+@router.post('/requisitions/{id}/purchase-order',status_code=201)
+def issue_po(id:int,db:Session=DB,user=PROC):
+    req=request_for(db,id,user,True);state(req,'APPROVED')
+    q=db.scalar(select(Quotation).where(Quotation.requisition_id==id,Quotation.vendor_id==req.preferred_vendor_id))
+    if q.valid_until and q.valid_until<date.today():raise HTTPException(409,'Approved quotation expired; start a new requisition')
+    if not fetch(db,Vendor,q.vendor_id).active:raise HTTPException(409,'Approved vendor is inactive')
+    po=PurchaseOrder(requisition_id=id,vendor_id=q.vendor_id,po_number=f'PO-{date.today().year}-{uuid4().hex[:10].upper()}',total=q.grand_total,snapshot_json={'requisition':row(req),'items':detail(db,req)['items'],'quotation':quote_view(db,q)})
+    db.add(po);req.status='PO_ISSUED';db.flush();audit(db,user,'PO_ISSUED',req,details={'po_number':po.po_number});return row(po)
+
+@router.get('/purchase-orders/{id}')
+def po_detail(id:int,db:Session=DB,user=USER):
+    po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user)
+    result=row(po);result['requisition_status']=req.status
+    result['deliveries']=[row(x) for x in db.scalars(select(Delivery).where(Delivery.purchase_order_id==id))]
+    inv=db.scalar(select(Invoice).where(Invoice.purchase_order_id==id));result['invoice']=row(inv) if inv else None
+    result['documents']=[{k:v for k,v in row(d).items() if k!='storage_key'} for d in db.scalars(select(Document).where(Document.invoice_id==inv.id))] if inv else []
+    return result
+
