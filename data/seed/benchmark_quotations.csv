@@ -1,0 +1,4 @@
+vendor,item,quantity,unit_price,tax_percent,discount,expected_total
+Cedar Office Systems,Business laptop,2,51500,18,0,121540
+Northstar Technologies,Business laptop,2,54000,18,0,127440
+Harbor Business Supply,Business laptop,2,72000,18,0,169920

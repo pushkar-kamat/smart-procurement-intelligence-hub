@@ -1,0 +1,11 @@
+# Administrator guide
+1. Configure root/backend environment and database connection. Run Alembic upgrade and seed. Keep service-role key backend-only.
+2. Set up Supabase asymmetric JWT signing, email confirmation redirect, four demo identities (optional seed utility) and private storage bucket when hosted. No backend bypass login exists.
+3. Bootstrap first finance_admin with `python -m app.manage_profile EMAIL finance_admin` after real signup/first sign-in. Operations allows that admin to assign roles/active flags for other users. Each mutation is audited; the UI/API prohibit self-account role changes.
+4. Approval rules are stored in `approval_rules`. Seed level 1 applies to all values; level 2 finance applies to values >=100000. For changes, use a reviewed migration or controlled operator SQL. Ranges are min-inclusive/max-exclusive. Matching levels must be unique. Pending requests preserve an approval-plan snapshot.
+5. Root env controls price percentage, risk band cutoffs, invoice mismatch tolerance, upload cap and CORS. Restart API to apply. Risk factor weights are explicitly versioned in `services/intelligence.py` and sum to 100. Re-review thresholds before comparing old/new evaluation runs.
+6. Monitor `/health` (database connectivity), finance-only `/metrics`, JSON logs and safe request IDs. Counters are per worker and reset. Capture logs for demo without tokens.
+7. Back up PostgreSQL and storage together before migrations. Document metadata stores key, backend, size, hash and requisition ownership. Missing/corrupt objects return safe errors. There is no automatic orphan cleanup or retention policy; an operator must reconcile unreferenced objects after failed transactions.
+8. Disable departed profiles rather than deleting referenced history. There are no user audit-edit/delete endpoints. Restrict DB administrator access separately.
+
+Troubleshooting: 401 → expired/wrong JWT; 403 → role/ownership/disabled account; 409 → wrong workflow step or duplicate; 422 → invalid fields; 503 → unconfigured auth or unavailable DB/storage. Missing signing-key error on legacy HS256 requires rotating Supabase to asymmetric keys and signing in again. If Supabase tables appear through Data API, verify migration 7bfa01 and keep client policies absent.

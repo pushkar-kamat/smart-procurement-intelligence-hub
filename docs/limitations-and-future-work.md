@@ -1,0 +1,12 @@
+# Limitations and future work
+- Synthetic demonstration data only; no validated real-world risk model or fraud claim. Median requires 3 observations; IQR requires 5. Tight/zero IQR can flag small price increases. Exact item name + unit matching avoids category mixing but needs catalog normalization in production.
+- Vendor risk is a weighted rule score using aggregate history + current observations. Quotation edits replace current line contributions. Rejection of a requisition is not automatically a vendor dispute. New/partial histories remain unscored.
+- Supabase credentials and user-owned deployment are external. Live identity/storage and hosted Postgres/container execution are not claimed by local fixture tests.
+- Local backend tests use SQLite by default; PostgreSQL row-lock concurrency and RLS need the real DB/CI verification. CI includes isolated PostgreSQL schema tests.
+- Counters are per-process, not durable or aggregated; no rate limiter, antivirus or security alerting. Magic-file checks are not full document parsing.
+- Audit is append-only through the API, not cryptographically immutable against DB administrators. An API DB owner is used for prototype migrations/RLS; production should separate migration and runtime database privileges.
+- File storage and DB are not atomic; an object may be orphaned if DB commit fails after successful upload. An operator reconciliation job is future work.
+- One currency, one quote per vendor/request, one PO/invoice. Partial delivery is event-level, not line-level inventory. No payment system or external vendor portal. Invitations are records, not email messages.
+- Quotation attachment cannot be overwritten. Rejected/cancelled/closed records do not reopen; create a new requisition for corrections.
+- Requisition list caps at 500. Pagination, larger-scale load tests, notifications and richer reporting remain future work.
+- Manual baseline timings, user interviews, real CI/PR/deployment evidence, individual hours, final presentation/video must be completed honestly by the team.

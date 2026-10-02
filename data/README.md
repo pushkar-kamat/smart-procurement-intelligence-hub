@@ -1,0 +1,2 @@
+# Synthetic data package
+`python -m app.seed` (from backend) is authoritative. CSV files in seed/ are inspectable exports of synthetic-v1 price history, vendor aggregates and policy rules. They are not automatically imported. Seed script also creates 3 scenario requisitions and 3 complete comparison quotes with intentional price differences. See docs/data-provenance.md for permissions, assumptions and dates.
