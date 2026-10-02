@@ -1,18 +1,18 @@
-# Member1 Stage2 Price Anomaly Approvals
+# Member1 Stage3 Purchase Order
 
 **Owner:** Member 1
 
-Adds explainable price-anomaly analysis and the multi-level human approval workflow.
+Adds purchase-order generation after final approval and immutable quotation/requisition snapshots.
 
 ## Suggested commit
-`feat: add price anomaly analysis and approval workflow`
+`feat: add purchase order generation and snapshot`
 
 ## Verify before committing
-- `Re-enter a quotation and inspect line analysis`
-- `Send comparison for approval and test approval levels`
+- `Approve a requisition then POST /purchase-order`
+- `GET the generated purchase order`
 
 ## Viva ownership
-- Median and configured threshold
-- IQR upper boundary when enough history exists
-- Self-approval and repeated approver protections
+- PO allowed only after APPROVED
+- Vendor/quotation validity re-check
+- Immutable snapshot used for issued values
 
