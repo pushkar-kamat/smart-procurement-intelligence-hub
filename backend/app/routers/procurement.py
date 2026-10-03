@@ -18,7 +18,7 @@ PROC=Depends(roles('procurement'))
 FIN=Depends(roles('finance_admin'))
 REQ=Depends(roles('requester'))
 
-from app.services.intelligence import money, calculate_line, analyze_price
+from app.services.intelligence import money, calculate_line, analyze_price, invoice_mismatch
 
 @router.get('/me')
 def me(user=USER): return row(user)
@@ -222,4 +222,49 @@ def po_detail(id:int,db:Session=DB,user=USER):
     inv=db.scalar(select(Invoice).where(Invoice.purchase_order_id==id));result['invoice']=row(inv) if inv else None
     result['documents']=[{k:v for k,v in row(d).items() if k!='storage_key'} for d in db.scalars(select(Document).where(Document.invoice_id==inv.id))] if inv else []
     return result
+
+@router.post('/purchase-orders/{id}/delivery',status_code=201)
+def delivery(id:int,data:DeliveryIn,db:Session=DB,user=Depends(roles('procurement','finance_admin'))):
+    po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user,True);state(req,'PO_ISSUED')
+    if data.delivered_at<po.issued_at.date():raise HTTPException(422,'Delivery predates purchase order')
+    d=Delivery(purchase_order_id=id,**data.model_dump());db.add(d)
+    if data.status=='DELIVERED':req.status='DELIVERED';po.status='DELIVERED'
+    audit(db,user,'DELIVERY_RECORDED',req,details={'status':data.status});db.flush();return row(d)
+
+@router.post('/purchase-orders/{id}/invoice',status_code=201)
+def invoice(id:int,data:InvoiceIn,db:Session=DB,user=FIN):
+    po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user,True);state(req,'DELIVERED')
+    if data.invoice_date<po.issued_at.date():raise HTTPException(422,'Invoice predates purchase order')
+    flag,reason=invoice_mismatch(data.amount,po.total)
+    inv=Invoice(purchase_order_id=id,**data.model_dump(),mismatch_flag=flag,mismatch_reason=reason,status='REVIEW_REQUIRED' if flag else 'ACCEPTED')
+    db.add(inv);req.status='INVOICED';audit(db,user,'INVOICE_RECORDED',req,details={'mismatch':flag});db.flush();return row(inv)
+
+@router.post('/purchase-orders/{id}/close')
+def close(id:int,data:CommentIn,db:Session=DB,user=FIN):
+    po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user,True);state(req,'INVOICED')
+    inv=db.scalar(select(Invoice).where(Invoice.purchase_order_id==id))
+    inv.resolution_comment=data.comment;inv.status='ACCEPTED_WITH_REVIEW' if inv.mismatch_flag else 'ACCEPTED'
+    req.status='CLOSED';po.status='CLOSED';audit(db,user,'WORKFLOW_CLOSED',req,details={'comment':data.comment,'mismatch_reviewed':inv.mismatch_flag});return row(req)
+
+async def upload_document(db,user,req,file,quotation_id=None,invoice_id=None):
+    query=select(Document).where(Document.quotation_id==quotation_id) if quotation_id else select(Document).where(Document.invoice_id==invoice_id)
+    if db.scalar(query):raise HTTPException(409,'Document already attached; evidence cannot be overwritten')
+    data=await file.read(settings.max_upload+1);key,ctype,sha=storage.save(data)
+    doc=Document(requisition_id=req.id,quotation_id=quotation_id,invoice_id=invoice_id,storage_key=key,backend=settings.storage_backend,sha256=sha,original_name=(file.filename or 'document').replace('\\','/').split('/')[-1][:180],content_type=ctype,size_bytes=len(data))
+    db.add(doc);db.flush();audit(db,user,'DOCUMENT_UPLOADED',req,details={'document_id':doc.id,'sha256':sha});return {k:v for k,v in row(doc).items() if k!='storage_key'}
+
+@router.post('/quotations/{id}/file',status_code=201)
+async def quote_file(id:int,file:UploadFile=File(...),db:Session=DB,user=PROC):
+    q=fetch(db,Quotation,id);req=request_for(db,q.requisition_id,user,True);state(req,'QUOTATIONS_RECEIVED','COMPARISON_READY')
+    return await upload_document(db,user,req,file,quotation_id=id)
+
+@router.post('/invoices/{id}/file',status_code=201)
+async def invoice_file(id:int,file:UploadFile=File(...),db:Session=DB,user=FIN):
+    inv=fetch(db,Invoice,id);po=fetch(db,PurchaseOrder,inv.purchase_order_id);req=request_for(db,po.requisition_id,user,True);state(req,'INVOICED')
+    return await upload_document(db,user,req,file,invoice_id=id)
+
+@router.get('/documents/{id}')
+def download(id:int,db:Session=DB,user=USER):
+    doc=fetch(db,Document,id);request_for(db,doc.requisition_id,user)
+    return Response(storage.read(doc),media_type=doc.content_type,headers={'Content-Disposition':f'attachment; filename="document-{id}"','X-Document-SHA256':doc.sha256,'X-Content-Type-Options':'nosniff'})
 
