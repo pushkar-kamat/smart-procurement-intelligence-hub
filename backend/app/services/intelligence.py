@@ -42,3 +42,7 @@ def vendor_risk(facts):
     band='Low' if score<=settings.risk_low else 'Medium' if score<=settings.risk_medium else 'High'
     return {'score':score,'band':band,'factors':factors,'reason':'; '.join(f"{f['factor'].replace('_',' ')}: {f['rate_percent']}% × {f['weight']}% = {f['contribution']} points" for f in factors)+'. Human approval required.'}
 
+def invoice_mismatch(amount,total):
+    deviation=abs(float(amount)-float(total))/float(total)*100
+    return deviation>settings.mismatch_threshold, f'Invoice differs from PO by {deviation:.2f}%; configured tolerance {settings.mismatch_threshold:g}%.'
+
