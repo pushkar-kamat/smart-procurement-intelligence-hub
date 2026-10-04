@@ -1,0 +1,5 @@
+{
+  "docker-compose.yml": "YAML parsed; not container/provider execution",
+  "render.yaml": "YAML parsed; not container/provider execution",
+  ".github/workflows/ci.yml": "YAML parsed; not container/provider execution"
+}

@@ -1,0 +1,20 @@
+{
+  "/health": {
+    "status": 200,
+    "bytes": 80,
+    "response": {
+      "status": "ok",
+      "database": "reachable",
+      "auth_configured": false,
+      "storage": "local"
+    }
+  },
+  "/docs": {
+    "status": 200,
+    "bytes": 1033
+  },
+  "/openapi.json": {
+    "status": 200,
+    "bytes": 24473
+  }
+}
