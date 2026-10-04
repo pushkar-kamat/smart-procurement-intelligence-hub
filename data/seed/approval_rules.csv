@@ -1,0 +1,3 @@
+id,name,min_amount,max_amount,required_role,level,active
+1,Purchase committee,0.0,,approver,1,True
+2,Senior finance approval,100000.0,,finance_admin,2,True

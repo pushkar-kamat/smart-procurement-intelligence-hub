@@ -1,0 +1,227 @@
+/workspace/scratch/70238f97e4d3/.venv/lib/python3.12/site-packages/fastapi/testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+{"request_id": "022f2ff0b05448f89e096739cdf8554d", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 30.24}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "40857aa39f644c34a2e283c87ee5d1cd", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.54}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "91375b263cd34da1878dc52f17e1352a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.1}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "d5a6dfa0037a4b598e6b4ef6e5b9574f", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 8.14}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "6b8883317ceb4e7695d4caa54882d585", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.07}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "e33cb824a034461498033ba12a0421f9", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 59.79}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "5d94383280974d06bb3850c74cefabf5", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.68}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "fdb185d75b0c499d84002f50a611bdb9", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.21}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "06fc68765d9344c28e3eb8e5a85a59f5", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.03}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "dc50175ed14a4df9a7d30209773ddd14", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.8}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c37e2c69905b4fb98f789c6d87aaf13e", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.55}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "6a6158d661b44a9d87bab9f1ca65f682", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.16}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "4dfda5b33e98420fa1f19d9fc4918cc4", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.65}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "5775378d5636441a9f186c70c9ba9b0a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.74}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "6edb7ddbcf8647f88049c9f048721d56", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.1}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "6ffbcf7428f94ef9928c510652e42c74", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.06}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "93236ad9317d489a85ecf69e5339e81a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.57}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "efc1144f97d6463b95066d015f54a765", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.79}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "0619fded810846bba0e125c0f58681b2", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 10.05}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "96e01d24ef5c465d92ac200bbb3e072e", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.4}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "a2814eef98284a8e8287402a1a9155df", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.23}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "4dc1b2d6d33e41cb80b95c2d9d499d06", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.81}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "ade78eb53d904f1aa9f4eb4b65ec81c8", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.23}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "e64aa6bc90f44458a57ba34fc22720b2", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.35}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "d5dc3205cf4f4fc08bb3dcbbfb7cafc6", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.21}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "14a877f4c822475b92d9ff64ee6c005a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.85}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b72e76b692bd4092a12702f33d65cda5", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.94}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "46ad21ff341a469480e8b870d7480887", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.99}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c991e03039f647c0a97813d9ede927a3", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.07}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "e7b352874d444f019b1ee798a9f9da7d", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.39}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "03474172abe84e69881e6467cb3f9669", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.78}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "4c9f8e1b2be440069a0f4afc15c60b6c", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.61}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "51b9afddf5434efdb059fce8624d54bc", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.52}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b9bf97706a1c47d1987f3c263e3dee9a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.92}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "fc704c52c7394c35a83bdabbead6d174", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.33}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b4eebb8847ac4d05bb2ee094c337360f", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.25}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "4db89cc80d6c486aaf349f80ff0de513", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.97}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "ff07ad6ec1a54c74af7c89b6ad333773", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.09}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "77cedc37a4ef4c8a8330f6d2c543e981", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.0}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "e86e15e04cac4f1cbab9bca8371c9f9a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.93}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "7b326ee66a7c46d4bb35dcac8b1ed754", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.83}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "fdf562e8b86b46e9801e599744abf846", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.1}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c331f816d9a34b48983796bc791510a2", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.15}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "dc48b6e70e9c48fbbddfbf4024b06463", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.24}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "6911b4fb38414f7c93a6c6a8f2a6a3da", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.65}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "11195c7b932c4d979bd37004a8ab858b", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.44}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "7b0db811ef3540ef993771fba58ae0f9", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.61}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "7316fccee91141109596d96245b8da87", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.71}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "dae10f19d5a8493daf68feafe0733b3b", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.09}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "500cae3ba50d4fc48a12f8782794e7f4", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.0}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "0d12713ccf034d118d391b94dc308a32", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.37}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "cf24c69993a942409a68610c623f8c23", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.85}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "137e7301949e454aa556ceaa915f9a5d", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.44}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "84984f20dc884496b5609374ef3e75b2", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.75}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "978161ea01634ea2b0b610adbca35662", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.52}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "4ba01b8ac4204a8987f95a0821e43990", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.47}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "15e3b64520c04e14a530bc0b26cdfc3b", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.33}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b112d99c672a4749b63da3b20614f6bf", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.56}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b79fded5c8fd41bb9d4b131ab1770841", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.36}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b8cec269cde342199a3e75046bacf90b", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.89}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "12c38684d0d24f5eb48fb87514162e69", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.19}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c9f62055438e4884ba26d0a7e07fc000", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 8.02}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "17406abedb8a4ca2ae3484dde6236e68", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.49}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "d07051615c51440f87fbdf2c5123b94f", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.72}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c65790a371f548a4a4be98c91d1e1e36", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.79}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "66d0a9a11e534108bab0adf1943870c1", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.49}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "e0be36da21764b9fbfa51ed5faab12bb", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.11}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "3e5c979c858a4ccdad1b292506993f42", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.5}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "07e723056aeb401da48aa8d497913da6", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.53}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "d9bd01c4330a42d2a28bf2a94368061f", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.16}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "af1f2a2b6ea64bfdbea4c30eff849bfa", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.7}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "ccf5b633169c4321b1a4cf0231e1fcfe", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.47}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c43a88524a9640438320a80a7542b506", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.15}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "fba77e62bd05491abdc532d9bc43fa76", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.19}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "57b258284ffd4aaeb6ea0fd4b4e5c371", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.28}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "c858a276c900494b9a5749be4dfbd76c", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.42}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "65a052f0277343a6b44fc35100edc158", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.55}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "7421e85c75dd4f289f4ea78f120a81ec", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.07}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "a6d7a58773c84ee99cb029f0433878f8", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 9.09}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "a7344574122940399ac2d372926598b0", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.33}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "115f6a4e42a1473f91a331c8d31e2e20", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.38}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "4ee524511e624f48b69921dc71458cd0", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.0}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "7e745a85682b4be08ee14d871b8d73da", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.63}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "43103260fa774f428c782a878186d43a", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.01}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "feb0a3dc1702446884abfd04b8e58fe6", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.9}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "6b5360ce24de4fb9b5516070b1ec26cd", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 8.85}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "1eb4024c76f64c66af5874578d887ca9", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 8.96}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "279086998e124620915412a03cea735f", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 8.41}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "8c6929c60bee44bc97517c7665db0a91", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.73}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "2e7f9eb642594ad5a307aa0bcc6e30e3", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.09}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "a9ff8becc8744903a6c28b88072f356b", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.32}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "d5d612ecaa5b4de796caf23503679913", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.57}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "dbcb0342a8024c3c9c0b2289b9f34c5c", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.28}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "3471b278a8f2428f9936a630d57b5090", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.11}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "0d32e788379f41c7b7e6ff937247a89d", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.11}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "dadb2201dde6459cb3b4af547f2914f3", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 6.32}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "581a09539ee84b2eb1bc430de5b9f882", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.68}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "b04681bd80c3457d9fd3ca6b236ba254", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 7.61}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "ec1ed4db80b148299ea208bac56267fe", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.76}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{"request_id": "ae004717a4af49a2a12e481f3621b4b7", "method": "GET", "path": "/api/v1/requisitions/3/comparison", "status": 200, "duration_ms": 5.9}
+HTTP Request: GET http://testserver/api/v1/requisitions/3/comparison "HTTP/1.1 200 OK"
+{
+  "run_at_utc": "2026-09-29T16:53:45.700915+00:00",
+  "environment": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "scope": "isolated SQLite TestClient; fixture identity; no network or live Supabase",
+  "runs": 100,
+  "median_ms": 7.417,
+  "p95_ms": 9.857,
+  "max_ms": 60.706,
+  "expected_totals": [
+    121540,
+    127440,
+    169920
+  ],
+  "actual_totals": [
+    121540.0,
+    127440.0,
+    169920.0
+  ],
+  "correct_cases": 3,
+  "total_cases": 3,
+  "manual_workflow_seconds": null,
+  "system_human_workflow_seconds": null,
+  "cycle_time_reduction_percent": null
+}

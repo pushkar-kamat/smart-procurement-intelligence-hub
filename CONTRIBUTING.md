@@ -1,0 +1,2 @@
+# Contributing
+Use `m1/<feature>` and `m2/<feature>` branches. Open one issue per vertical module. Each PR includes UI, API, schema changes, tests and relevant docs where applicable. The other member reviews before merge. Never edit an applied migration; add a new one. Run backend tests, frontend tests and build. Record only actual dates, hours and evidence. Keep `.env` and upload contents out of commits. See `docs/member-ownership.md` and `docs/backlog.md`.

@@ -1,0 +1,16 @@
+# Secrets, local databases and generated dependencies
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+.venv/
+node_modules/
+dist/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+*.sqlite*
+uploads/
+*.log
+playwright-report/

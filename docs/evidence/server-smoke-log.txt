@@ -1,0 +1,16 @@
+INFO:     Started server process [7]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8017 (Press CTRL+C to quit)
+{"request_id": "b773624b1f1f49ef9b3c114bc5806e41", "method": "GET", "path": "/health", "status": 200, "duration_ms": 3.13}
+INFO:     127.0.0.1:55152 - "GET /health HTTP/1.1" 200 OK
+{"request_id": "15b86560198944b4a990fa819bb016ef", "method": "GET", "path": "/health", "status": 200, "duration_ms": 1.17}
+INFO:     127.0.0.1:55168 - "GET /health HTTP/1.1" 200 OK
+{"request_id": "8e2464aa53fa409e8c7dc886e37a2761", "method": "GET", "path": "/docs", "status": 200, "duration_ms": 0.16}
+INFO:     127.0.0.1:55180 - "GET /docs HTTP/1.1" 200 OK
+{"request_id": "ece5917e583c4dcd91297611d5cf5a97", "method": "GET", "path": "/openapi.json", "status": 200, "duration_ms": 38.47}
+INFO:     127.0.0.1:55188 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7]

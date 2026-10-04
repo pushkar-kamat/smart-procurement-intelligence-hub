@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(dirname "$0")/../backend"
+../.venv/bin/python -m alembic upgrade head
+../.venv/bin/python -m app.seed

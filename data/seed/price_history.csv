@@ -1,0 +1,81 @@
+id,item_name,category,unit,unit_price,observed_at,source
+1,Business laptop,Computers,piece,48880.0,2026-04-02,synthetic-v1
+2,Business laptop,Computers,piece,50440.0,2026-04-17,synthetic-v1
+3,Business laptop,Computers,piece,50960.0,2026-05-02,synthetic-v1
+4,Business laptop,Computers,piece,52000.0,2026-05-17,synthetic-v1
+5,Business laptop,Computers,piece,52000.0,2026-06-01,synthetic-v1
+6,Business laptop,Computers,piece,53040.0,2026-06-16,synthetic-v1
+7,Business laptop,Computers,piece,53560.0,2026-07-01,synthetic-v1
+8,Business laptop,Computers,piece,55120.0,2026-07-16,synthetic-v1
+9,Office monitor,Displays,piece,13160.0,2026-04-02,synthetic-v1
+10,Office monitor,Displays,piece,13580.0,2026-04-17,synthetic-v1
+11,Office monitor,Displays,piece,13720.0,2026-05-02,synthetic-v1
+12,Office monitor,Displays,piece,14000.0,2026-05-17,synthetic-v1
+13,Office monitor,Displays,piece,14000.0,2026-06-01,synthetic-v1
+14,Office monitor,Displays,piece,14280.0,2026-06-16,synthetic-v1
+15,Office monitor,Displays,piece,14420.0,2026-07-01,synthetic-v1
+16,Office monitor,Displays,piece,14840.0,2026-07-16,synthetic-v1
+17,Laser printer,Printing,piece,20680.0,2026-04-02,synthetic-v1
+18,Laser printer,Printing,piece,21340.0,2026-04-17,synthetic-v1
+19,Laser printer,Printing,piece,21560.0,2026-05-02,synthetic-v1
+20,Laser printer,Printing,piece,22000.0,2026-05-17,synthetic-v1
+21,Laser printer,Printing,piece,22000.0,2026-06-01,synthetic-v1
+22,Laser printer,Printing,piece,22440.0,2026-06-16,synthetic-v1
+23,Laser printer,Printing,piece,22660.0,2026-07-01,synthetic-v1
+24,Laser printer,Printing,piece,23320.0,2026-07-16,synthetic-v1
+25,Ergonomic chair,Furniture,piece,6110.0,2026-04-02,synthetic-v1
+26,Ergonomic chair,Furniture,piece,6305.0,2026-04-17,synthetic-v1
+27,Ergonomic chair,Furniture,piece,6370.0,2026-05-02,synthetic-v1
+28,Ergonomic chair,Furniture,piece,6500.0,2026-05-17,synthetic-v1
+29,Ergonomic chair,Furniture,piece,6500.0,2026-06-01,synthetic-v1
+30,Ergonomic chair,Furniture,piece,6630.0,2026-06-16,synthetic-v1
+31,Ergonomic chair,Furniture,piece,6695.0,2026-07-01,synthetic-v1
+32,Ergonomic chair,Furniture,piece,6890.0,2026-07-16,synthetic-v1
+33,Network switch,Networking,piece,7520.0,2026-04-02,synthetic-v1
+34,Network switch,Networking,piece,7760.0,2026-04-17,synthetic-v1
+35,Network switch,Networking,piece,7840.0,2026-05-02,synthetic-v1
+36,Network switch,Networking,piece,8000.0,2026-05-17,synthetic-v1
+37,Network switch,Networking,piece,8000.0,2026-06-01,synthetic-v1
+38,Network switch,Networking,piece,8160.0,2026-06-16,synthetic-v1
+39,Network switch,Networking,piece,8240.0,2026-07-01,synthetic-v1
+40,Network switch,Networking,piece,8480.0,2026-07-16,synthetic-v1
+41,UPS 1kVA,Power,piece,8460.0,2026-04-02,synthetic-v1
+42,UPS 1kVA,Power,piece,8730.0,2026-04-17,synthetic-v1
+43,UPS 1kVA,Power,piece,8820.0,2026-05-02,synthetic-v1
+44,UPS 1kVA,Power,piece,9000.0,2026-05-17,synthetic-v1
+45,UPS 1kVA,Power,piece,9000.0,2026-06-01,synthetic-v1
+46,UPS 1kVA,Power,piece,9180.0,2026-06-16,synthetic-v1
+47,UPS 1kVA,Power,piece,9270.0,2026-07-01,synthetic-v1
+48,UPS 1kVA,Power,piece,9540.0,2026-07-16,synthetic-v1
+49,Projector,AV,piece,33840.0,2026-04-02,synthetic-v1
+50,Projector,AV,piece,34920.0,2026-04-17,synthetic-v1
+51,Projector,AV,piece,35280.0,2026-05-02,synthetic-v1
+52,Projector,AV,piece,36000.0,2026-05-17,synthetic-v1
+53,Projector,AV,piece,36000.0,2026-06-01,synthetic-v1
+54,Projector,AV,piece,36720.0,2026-06-16,synthetic-v1
+55,Projector,AV,piece,37080.0,2026-07-01,synthetic-v1
+56,Projector,AV,piece,38160.0,2026-07-16,synthetic-v1
+57,External SSD,Storage,piece,5170.0,2026-04-02,synthetic-v1
+58,External SSD,Storage,piece,5335.0,2026-04-17,synthetic-v1
+59,External SSD,Storage,piece,5390.0,2026-05-02,synthetic-v1
+60,External SSD,Storage,piece,5500.0,2026-05-17,synthetic-v1
+61,External SSD,Storage,piece,5500.0,2026-06-01,synthetic-v1
+62,External SSD,Storage,piece,5610.0,2026-06-16,synthetic-v1
+63,External SSD,Storage,piece,5665.0,2026-07-01,synthetic-v1
+64,External SSD,Storage,piece,5830.0,2026-07-16,synthetic-v1
+65,Keyboard,Accessories,piece,846.0,2026-04-02,synthetic-v1
+66,Keyboard,Accessories,piece,873.0,2026-04-17,synthetic-v1
+67,Keyboard,Accessories,piece,882.0,2026-05-02,synthetic-v1
+68,Keyboard,Accessories,piece,900.0,2026-05-17,synthetic-v1
+69,Keyboard,Accessories,piece,900.0,2026-06-01,synthetic-v1
+70,Keyboard,Accessories,piece,918.0,2026-06-16,synthetic-v1
+71,Keyboard,Accessories,piece,927.0,2026-07-01,synthetic-v1
+72,Keyboard,Accessories,piece,954.0,2026-07-16,synthetic-v1
+73,A4 paper box,Stationery,piece,1410.0,2026-04-02,synthetic-v1
+74,A4 paper box,Stationery,piece,1455.0,2026-04-17,synthetic-v1
+75,A4 paper box,Stationery,piece,1470.0,2026-05-02,synthetic-v1
+76,A4 paper box,Stationery,piece,1500.0,2026-05-17,synthetic-v1
+77,A4 paper box,Stationery,piece,1500.0,2026-06-01,synthetic-v1
+78,A4 paper box,Stationery,piece,1530.0,2026-06-16,synthetic-v1
+79,A4 paper box,Stationery,piece,1545.0,2026-07-01,synthetic-v1
+80,A4 paper box,Stationery,piece,1590.0,2026-07-16,synthetic-v1

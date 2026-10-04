@@ -1,0 +1,8 @@
+# Data provenance
+Dataset version: **synthetic-v1**, generated deterministically by `backend/app/seed.py`. No real supplier, student, payment or personal records are used. Vendor names are invented for demonstration; email addresses use example.com. Dates are relative to seed execution, so values are deterministic while timestamps reflect the run date.
+
+10 item types × 8 historical observations = 80 unit prices. Relative multipliers .94, .97, .98, 1, 1, 1.02, 1.03, 1.06 make reproducible median and IQR references. Quotes at 72000 for a baseline 52000 laptop are deliberately injected high-price cases. Vendor histories produce low/medium/high bands; the tenth vendor has no history and is not assigned a confident score.
+
+The 3 initial requisitions are scenario snapshots, clearly audited as SYNTHETIC_SCENARIO_SEEDED rather than fake historical actions. A new acceptance scenario produces genuine full audit events. Historical price matching uses exact item name and unit with observation date no later than quote date; category alone is not used because incomparable specifications would distort the reference. Risk combines synthetic historical aggregates with current recorded quotation/delivery/invoice observations. Unfulfilled POs contribute incompletion only after their delivery deadline.
+
+Safe simulated data is allowed by the portfolio. This team-authored seed package may be used/modified for this academic project; there is no third-party dataset license claim. Do not present the synthetic records as real vendor performance or real-world predictive validation. CSV exports in `data/seed/` mirror the generator for inspection.
