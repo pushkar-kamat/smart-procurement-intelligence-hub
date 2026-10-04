@@ -1,18 +1,16 @@
-# Member1 Stage4 UI Tests Documentation
+# Final Integration
 
-**Owner:** Member 1
+Merge both members' completed work and normalize to the tested working snapshot. This stage owns cross-cutting integration only: Supabase token validation, configuration, CORS, Docker, CI, deployment files, full end-to-end regression suite and final evidence/documentation.
 
-Adds Member 1 frontend ownership for requisitions, vendor invitations, approvals and purchase-order viewing, plus focused anomaly tests and contribution notes.
+Suggested commit message:
+`chore: integrate final tested procurement application`
 
-## Suggested commit
-`feat: add member 1 procurement UI and tests`
+Final verification:
+1. `cd backend && python -m pytest -v`
+2. `python -m pip_audit`
+3. `cd frontend && npm test && npm run build && npm audit`
+4. `docker compose up -d --build`
+5. `docker compose ps`
+6. Test login and one complete procurement workflow.
 
-## Verify before committing
-- `cd frontend && npm run build`
-- `cd backend && python -m pytest -v`
-
-## Viva ownership
-- Requester and procurement UI actions
-- Approval roles and state guards
-- How anomaly evidence supports but does not replace human approval
-
+Do not backdate commits. Treat the staged history as current integration/ownership evidence from an existing prototype.

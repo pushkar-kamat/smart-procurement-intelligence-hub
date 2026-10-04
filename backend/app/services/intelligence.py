@@ -3,7 +3,6 @@ from statistics import median, quantiles
 from app.core.config import settings
 
 def money(value): return Decimal(str(value)).quantize(Decimal('0.01'),rounding=ROUND_HALF_UP)
-
 def calculate_line(price,quantity,tax_percent,discount):
     base=money(Decimal(price)*Decimal(quantity)); discount=money(discount)
     if discount >= base: raise ValueError('Discount must be less than line subtotal')
@@ -45,4 +44,3 @@ def vendor_risk(facts):
 def invoice_mismatch(amount,total):
     deviation=abs(float(amount)-float(total))/float(total)*100
     return deviation>settings.mismatch_threshold, f'Invoice differs from PO by {deviation:.2f}%; configured tolerance {settings.mismatch_threshold:g}%.'
-

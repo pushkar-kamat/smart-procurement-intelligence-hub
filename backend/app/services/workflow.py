@@ -7,7 +7,6 @@ from app.models.entities import *
 from app.services.intelligence import vendor_risk
 
 def row(obj): return jsonable_encoder({c.name:getattr(obj,c.name) for c in obj.__table__.columns},custom_encoder={Decimal:float})
-
 def fetch(db,cls,id):
     value=db.get(cls,id)
     if value is None: raise HTTPException(404,f'{cls.__name__} not found')
@@ -70,4 +69,3 @@ def detail(db,req):
     po=db.scalar(select(PurchaseOrder).where(PurchaseOrder.requisition_id==req.id))
     result['purchase_order']=row(po) if po else None
     return result
-

@@ -1,0 +1,25 @@
+{
+  "run_at_utc": "2026-09-29T16:53:45.700915+00:00",
+  "environment": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "scope": "isolated SQLite TestClient; fixture identity; no network or live Supabase",
+  "runs": 100,
+  "median_ms": 7.417,
+  "p95_ms": 9.857,
+  "max_ms": 60.706,
+  "expected_totals": [
+    121540,
+    127440,
+    169920
+  ],
+  "actual_totals": [
+    121540.0,
+    127440.0,
+    169920.0
+  ],
+  "correct_cases": 3,
+  "total_cases": 3,
+  "manual_workflow_seconds": null,
+  "system_human_workflow_seconds": null,
+  "cycle_time_reduction_percent": null
+}
