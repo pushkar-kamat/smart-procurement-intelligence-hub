@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.core.database import Base,get_db
 from app.core.auth import current_user
-from app.models.entities import Profile
+from app.models.entities import Profile,Vendor
 from app.seed import seed
 
 @pytest.fixture
@@ -32,7 +32,9 @@ def env(tmp_path,monkeypatch):
     sessions=sessionmaker(engine,expire_on_commit=False)
     with sessions.begin() as db:
         seed(db)
-        for name,role in [('procurement','procurement'),('approver','approver'),('finance','finance_admin'),('other','requester')]:
+        vendor=db.get(Vendor,1)
+        vendor.email='vendor@example.com'
+        for name,role in [('procurement','procurement'),('approver','approver'),('finance','finance_admin'),('other','requester'),('vendor','vendor')]:
             db.add(Profile(supabase_user_id=name,email=name+'@example.com',name=name,role=role))
     def override():
         with sessions() as db:

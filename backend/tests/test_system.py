@@ -34,7 +34,7 @@ def test_risk_bands():
     for rate,band in [(0,'Low'),(.4,'Medium'),(.8,'High')]:
         facts={'total_orders':20,'completed_orders':20,'late_deliveries':int(20*rate),'quotation_lines':20,'anomalous_lines':int(20*rate),'disputed_orders':int(20*rate),'incomplete_orders':int(20*rate),'invoiced_orders':20,'invoice_mismatches':int(20*rate)}
         risk=vendor_risk(facts);assert risk['band']==band;assert risk['score']==rate*100
-    assert vendor_risk({})['band']=='INSUFFICIENT_HISTORY'
+    assert vendor_risk({})['band']=='NEW_VENDOR'
 def test_invoice_tolerance():
     assert invoice_mismatch(106,100)[0];assert not invoice_mismatch(105,100)[0]
 def test_health_and_openapi(env):

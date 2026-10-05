@@ -1,8 +1,8 @@
-from datetime import date
+from datetime import date, timedelta
 from uuid import uuid4
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Response
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.auth import current_user, roles
@@ -15,14 +15,22 @@ from app.services import storage
 router=APIRouter(prefix='/api/v1')
 DB=Depends(get_db,scope="function")
 USER=Depends(current_user)
+STAFF=Depends(roles('requester','procurement','approver','finance_admin'))
+VENDOR=Depends(roles('vendor'))
 PROC=Depends(roles('procurement'))
 FIN=Depends(roles('finance_admin'))
 REQ=Depends(roles('requester'))
 
+def vendor_for_user(db,user):
+    vendor=db.scalar(select(Vendor).where(Vendor.email==user.email))
+    if not vendor:raise HTTPException(403,'Vendor account is not linked to a supplier record')
+    if not vendor.active:raise HTTPException(403,'Vendor account is inactive')
+    return vendor
+
 @router.get('/me')
 def me(user=USER): return row(user)
 @router.get('/departments')
-def departments(db:Session=DB,user=USER): return [row(x) for x in db.scalars(select(Department).order_by(Department.name))]
+def departments(db:Session=DB,user=STAFF): return [row(x) for x in db.scalars(select(Department).order_by(Department.name))]
 @router.get('/profiles')
 def profiles(db:Session=DB,user=FIN): return [row(x) for x in db.scalars(select(Profile))]
 @router.patch('/profiles/{id}')
@@ -33,10 +41,40 @@ def update_profile(id:int,data:ProfileUpdate,db:Session=DB,user=FIN):
     for k,v in data.model_dump().items(): setattr(p,k,v)
     audit(db,user,'PROFILE_UPDATED',entity=p,details=data.model_dump());db.flush();return row(p)
 @router.get('/approval-rules')
-def approval_rules(db:Session=DB,user=USER): return [row(x) for x in db.scalars(select(ApprovalRule).where(ApprovalRule.active==True).order_by(ApprovalRule.level))]
+def approval_rules(db:Session=DB,user=STAFF): return [row(x) for x in db.scalars(select(ApprovalRule).where(ApprovalRule.active==True).order_by(ApprovalRule.level))]
+
+@router.get('/vendor/me')
+def vendor_me(db:Session=DB,user=VENDOR):
+    vendor=vendor_for_user(db,user)
+    invitations=list(db.scalars(select(Invitation).where(Invitation.vendor_id==vendor.id)))
+    quotations=list(db.scalars(select(Quotation).where(Quotation.vendor_id==vendor.id)))
+    purchase_orders=list(db.scalars(select(PurchaseOrder).where(PurchaseOrder.vendor_id==vendor.id)))
+    return {
+        'vendor':row(vendor),
+        'risk':risk_for(db,vendor.id),
+        'open_rfqs':sum(1 for i in invitations if i.status=='INVITED'),
+        'submitted_quotations':len(quotations),
+        'purchase_orders':len(purchase_orders),
+    }
+
+@router.get('/vendor/rfqs')
+def vendor_rfqs(db:Session=DB,user=VENDOR):
+    vendor=vendor_for_user(db,user)
+    result=[]
+    for invitation in db.scalars(select(Invitation).where(Invitation.vendor_id==vendor.id).order_by(Invitation.invited_at.desc())):
+        req=fetch(db,Requisition,invitation.requisition_id)
+        quote=db.scalar(select(Quotation).where(Quotation.requisition_id==req.id,Quotation.vendor_id==vendor.id))
+        result.append({
+            'invitation':row(invitation),
+            'requisition':row(req),
+            'items':[row(x) for x in db.scalars(select(RequisitionItem).where(RequisitionItem.requisition_id==req.id).order_by(RequisitionItem.id))],
+            'quotation':quote_view(db,quote) if quote else None,
+            'can_submit':quote is None and req.status in ('SOURCING','QUOTATIONS_RECEIVED'),
+        })
+    return result
 
 @router.get('/requisitions')
-def requisitions(db:Session=DB,user=USER):
+def requisitions(db:Session=DB,user=STAFF):
     query=select(Requisition).order_by(Requisition.created_at.desc())
     if user.role=='requester': query=query.where(Requisition.requester_id==user.id)
     return [row(x) for x in db.scalars(query.limit(500))]
@@ -55,7 +93,7 @@ def create_requisition(data:RequisitionIn,db:Session=DB,user=REQ):
     req=Requisition(requester_id=user.id,estimated_total=0,**data.model_dump(exclude={'items'}));db.add(req);db.flush()
     write_items(db,req,data.items);audit(db,user,'REQUISITION_CREATED',req);db.flush();return detail(db,req)
 @router.get('/requisitions/{id}')
-def get_requisition(id:int,db:Session=DB,user=USER): return detail(db,request_for(db,id,user))
+def get_requisition(id:int,db:Session=DB,user=STAFF): return detail(db,request_for(db,id,user))
 @router.put('/requisitions/{id}')
 def edit_requisition(id:int,data:RequisitionIn,db:Session=DB,user=REQ):
     req=request_for(db,id,user,True);state(req,'DRAFT');fetch(db,Department,data.department_id)
@@ -73,7 +111,7 @@ def cancel(id:int,data:CommentIn,db:Session=DB,user=REQ):
     req=request_for(db,id,user,True);state(req,'DRAFT','SUBMITTED');req.status='CANCELLED';audit(db,user,'REQUISITION_CANCELLED',req,details=data.model_dump());return row(req)
 
 @router.get('/vendors')
-def vendors(db:Session=DB,user=USER): return [row(x) for x in db.scalars(select(Vendor).order_by(Vendor.name))]
+def vendors(db:Session=DB,user=STAFF): return [row(x) for x in db.scalars(select(Vendor).order_by(Vendor.name))]
 @router.post('/vendors',status_code=201)
 def create_vendor(data:VendorIn,db:Session=DB,user=PROC):
     v=Vendor(**data.model_dump());db.add(v);db.flush();audit(db,user,'VENDOR_CREATED',entity=v);return row(v)
@@ -83,9 +121,9 @@ def update_vendor(id:int,data:VendorIn,db:Session=DB,user=PROC):
     for k,value in data.model_dump().items():setattr(v,k,value)
     audit(db,user,'VENDOR_UPDATED',entity=v,details={'active':v.active});return row(v)
 @router.get('/vendors/{id}/risk')
-def risk(id:int,db:Session=DB,user=USER): fetch(db,Vendor,id);return risk_for(db,id)
+def risk(id:int,db:Session=DB,user=STAFF): fetch(db,Vendor,id);return risk_for(db,id)
 @router.get('/requisitions/{id}/invitations')
-def invitations(id:int,db:Session=DB,user=USER):return detail(db,request_for(db,id,user))['invitations']
+def invitations(id:int,db:Session=DB,user=STAFF):return detail(db,request_for(db,id,user))['invitations']
 @router.post('/requisitions/{id}/invitations',status_code=201)
 def invite(id:int,data:InviteIn,db:Session=DB,user=PROC):
     req=request_for(db,id,user,True);state(req,'SUBMITTED','SOURCING','QUOTATIONS_RECEIVED')
@@ -95,6 +133,20 @@ def invite(id:int,data:InviteIn,db:Session=DB,user=PROC):
     i=Invitation(requisition_id=id,vendor_id=v.id);db.add(i)
     if req.status=='SUBMITTED':req.status='SOURCING'
     audit(db,user,'VENDOR_INVITED',req,details={'vendor_id':v.id});db.flush();return row(i)
+
+@router.post('/requisitions/{id}/invite-all')
+def invite_all(id:int,db:Session=DB,user=PROC):
+    req=request_for(db,id,user,True);state(req,'SUBMITTED','SOURCING','QUOTATIONS_RECEIVED')
+    active=list(db.scalars(select(Vendor).where(Vendor.active==True).order_by(Vendor.name)))
+    if not active:raise HTTPException(409,'No active vendors are available')
+    existing=set(db.scalars(select(Invitation.vendor_id).where(Invitation.requisition_id==id)))
+    added=[]
+    for vendor in active:
+        if vendor.id not in existing:
+            db.add(Invitation(requisition_id=id,vendor_id=vendor.id));added.append(vendor.id)
+    if req.status=='SUBMITTED':req.status='SOURCING'
+    audit(db,user,'RFQ_BROADCAST',req,details={'vendor_ids':added,'active_vendor_count':len(active)})
+    db.flush();return detail(db,req)
 
 def set_quote(db,req,q,data):
     items={x.id:x for x in db.scalars(select(RequisitionItem).where(RequisitionItem.requisition_id==req.id))}
@@ -107,11 +159,28 @@ def set_quote(db,req,q,data):
         item=items[line.requisition_item_id]
         try: values=calculate_line(line.unit_price,item.quantity,line.tax_percent,line.discount)
         except ValueError as e: raise HTTPException(422,str(e))
-        history=list(db.scalars(select(PriceHistory.unit_price).where(PriceHistory.item_name==item.item_name,PriceHistory.unit==item.unit,PriceHistory.observed_at<=data.quotation_date)))
+        history=list(db.scalars(select(PriceHistory.unit_price).where(
+            func.lower(PriceHistory.item_name)==item.item_name.strip().lower(),
+            func.lower(PriceHistory.unit)==item.unit.strip().lower(),
+            PriceHistory.observed_at<=data.quotation_date,
+        )))
         analysis=analyze_price(line.unit_price,history)
         db.add(QuotationItem(quotation_id=q.id,requisition_item_id=item.id,unit_price=line.unit_price,quantity=item.quantity,tax=values['tax'],discount=values['discount'],line_total=values['total'],analysis=analysis))
         q.subtotal+=values['subtotal'];q.tax_total+=values['tax'];q.discount_total+=values['discount'];q.grand_total+=values['total']
     db.flush()
+
+@router.post('/vendor/rfqs/{id}/quotation',status_code=201)
+def vendor_submit_quotation(id:int,data:VendorQuoteIn,db:Session=DB,user=VENDOR):
+    vendor=vendor_for_user(db,user)
+    req=fetch(db,Requisition,id);state(req,'SOURCING','QUOTATIONS_RECEIVED')
+    invitation=db.scalar(select(Invitation).where(Invitation.requisition_id==id,Invitation.vendor_id==vendor.id))
+    if not invitation:raise HTTPException(403,'This RFQ was not sent to your vendor account')
+    if db.scalar(select(Quotation).where(Quotation.requisition_id==id,Quotation.vendor_id==vendor.id)):
+        raise HTTPException(409,'Quotation already submitted for this RFQ')
+    q=Quotation(requisition_id=id,vendor_id=vendor.id);set_quote(db,req,q,data)
+    invitation.status='RESPONDED';invitation.response_at=now();req.status='QUOTATIONS_RECEIVED'
+    audit(db,user,'VENDOR_QUOTATION_SUBMITTED',req,details={'vendor_id':vendor.id,'quotation_id':q.id,'total':float(q.grand_total)})
+    db.flush();return quote_view(db,q)
 
 @router.post('/requisitions/{id}/quotations',status_code=201)
 def quotation(id:int,data:QuoteIn,db:Session=DB,user=PROC):
@@ -130,9 +199,9 @@ def edit_quote(id:int,data:QuoteIn,db:Session=DB,user=PROC):
     if q.vendor_id!=data.vendor_id:raise HTTPException(422,'Vendor cannot be changed')
     set_quote(db,req,q,data);req.status='QUOTATIONS_RECEIVED';audit(db,user,'QUOTATION_UPDATED',req,details={'quotation_id':id});return quote_view(db,q)
 @router.get('/requisitions/{id}/quotations')
-def quotes(id:int,db:Session=DB,user=USER):return detail(db,request_for(db,id,user))['quotations']
+def quotes(id:int,db:Session=DB,user=STAFF):return detail(db,request_for(db,id,user))['quotations']
 @router.get('/quotations/{id}')
-def quote_detail(id:int,db:Session=DB,user=USER):
+def quote_detail(id:int,db:Session=DB,user=STAFF):
     q=fetch(db,Quotation,id);request_for(db,q.requisition_id,user);return quote_view(db,q)
 
 @router.post('/requisitions/{id}/recalculate')
@@ -141,7 +210,7 @@ def recalculate(id:int,db:Session=DB,user=PROC):
     if not db.scalar(select(Quotation).where(Quotation.requisition_id==id)):raise HTTPException(409,'At least one complete quotation required')
     req.status='COMPARISON_READY';audit(db,user,'COMPARISON_GENERATED',req);return comparison(id,db,user)
 @router.get('/requisitions/{id}/comparison')
-def comparison(id:int,db:Session=DB,user=USER):
+def comparison(id:int,db:Session=DB,user=STAFF):
     req=request_for(db,id,user);data=detail(db,req)
     for q in data['quotations']:q['risk']=risk_for(db,q['vendor_id'])
     data['lowest_total']=min((float(q['grand_total']) for q in data['quotations']),default=None)
@@ -157,14 +226,22 @@ def send_for_approval(id:int,data:SelectionIn,db:Session=DB,user=PROC):
     rules=[x for x in rules if x.max_amount is None or q.grand_total<x.max_amount]
     if not rules or len({x.level for x in rules})!=len(rules):raise HTTPException(409,'Approval policy is missing or ambiguous')
     req.approval_plan=[{'level':x.level,'role':x.required_role,'name':x.name} for x in rules]
-    req.preferred_vendor_id=data.vendor_id;req.status='PENDING_APPROVAL'
+    req.preferred_vendor_id=data.vendor_id;req.selection_reason=data.comment;req.status='PENDING_APPROVAL'
+    for invitation in db.scalars(select(Invitation).where(Invitation.requisition_id==id)):
+        if invitation.vendor_id==data.vendor_id:
+            invitation.status='SELECTED_FOR_APPROVAL'
+        elif invitation.status=='RESPONDED':
+            invitation.status='NOT_SELECTED'
     audit(db,user,'PREFERRED_VENDOR_PROPOSED',req,details=data.model_dump());audit(db,user,'SENT_FOR_APPROVAL',req,details={'plan':req.approval_plan});return row(req)
 @router.get('/approvals/inbox')
 def inbox(db:Session=DB,user=Depends(roles('approver','finance_admin'))):
     results=[]
     for req in db.scalars(select(Requisition).where(Requisition.status=='PENDING_APPROVAL')):
         done=len(list(db.scalars(select(Approval).where(Approval.requisition_id==req.id))))
-        if req.approval_plan[done]['role']==user.role:results.append(row(req))
+        if req.approval_plan[done]['role']==user.role:
+            item=detail(db,req)
+            item['next_approval']=req.approval_plan[done]
+            results.append(item)
     return results
 @router.post('/requisitions/{id}/approval')
 def approve(id:int,data:DecisionIn,db:Session=DB,user=Depends(roles('approver','finance_admin'))):
@@ -175,8 +252,14 @@ def approve(id:int,data:DecisionIn,db:Session=DB,user=Depends(roles('approver','
     step=req.approval_plan[len(previous)]
     if step['role']!=user.role:raise HTTPException(403,'This approval level requires '+step['role'])
     db.add(Approval(requisition_id=id,approver_id=user.id,approval_level=step['level'],decision=data.decision,comment=data.comment))
-    if data.decision=='REJECTED':req.status='REJECTED'
-    elif len(previous)+1==len(req.approval_plan):req.status='APPROVED'
+    if data.decision=='REJECTED':
+        req.status='REJECTED'
+        selected=db.scalar(select(Invitation).where(Invitation.requisition_id==id,Invitation.vendor_id==req.preferred_vendor_id))
+        if selected:selected.status='REJECTED'
+    elif len(previous)+1==len(req.approval_plan):
+        req.status='APPROVED'
+        for invitation in db.scalars(select(Invitation).where(Invitation.requisition_id==id)):
+            invitation.status='APPROVED' if invitation.vendor_id==req.preferred_vendor_id else 'NOT_SELECTED'
     audit(db,user,'APPROVAL_'+data.decision,req,details={'level':step['level'],'comment':data.comment});db.flush();return detail(db,req)
 
 @router.post('/requisitions/{id}/purchase-order',status_code=201)
@@ -188,9 +271,11 @@ def issue_po(id:int,db:Session=DB,user=PROC):
     po=PurchaseOrder(requisition_id=id,vendor_id=q.vendor_id,po_number=f'PO-{date.today().year}-{uuid4().hex[:10].upper()}',total=q.grand_total,snapshot_json={'requisition':row(req),'items':detail(db,req)['items'],'quotation':quote_view(db,q)})
     db.add(po);req.status='PO_ISSUED';db.flush();audit(db,user,'PO_ISSUED',req,details={'po_number':po.po_number});return row(po)
 @router.get('/purchase-orders/{id}')
-def po_detail(id:int,db:Session=DB,user=USER):
+def po_detail(id:int,db:Session=DB,user=STAFF):
     po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user)
     result=row(po);result['requisition_status']=req.status
+    promised_days=int(po.snapshot_json.get('quotation',{}).get('delivery_days') or 0)
+    result['expected_delivery_date']=(po.issued_at.date()+timedelta(days=promised_days)).isoformat()
     result['deliveries']=[row(x) for x in db.scalars(select(Delivery).where(Delivery.purchase_order_id==id))]
     inv=db.scalar(select(Invoice).where(Invoice.purchase_order_id==id));result['invoice']=row(inv) if inv else None
     result['documents']=[{k:v for k,v in row(d).items() if k!='storage_key'} for d in db.scalars(select(Document).where(Document.invoice_id==inv.id))] if inv else []
@@ -198,10 +283,12 @@ def po_detail(id:int,db:Session=DB,user=USER):
 @router.post('/purchase-orders/{id}/delivery',status_code=201)
 def delivery(id:int,data:DeliveryIn,db:Session=DB,user=Depends(roles('procurement','finance_admin'))):
     po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user,True);state(req,'PO_ISSUED')
-    if data.delivered_at<po.issued_at.date():raise HTTPException(422,'Delivery predates purchase order')
+    if data.delivered_at<po.issued_at.date():raise HTTPException(422,'Actual receipt date cannot predate the purchase order issue date')
+    if data.status=='PARTIAL' and data.expected_completion_at and data.expected_completion_at<date.today():
+        raise HTTPException(422,'Expected remaining delivery date cannot be in the past')
     d=Delivery(purchase_order_id=id,**data.model_dump());db.add(d)
     if data.status=='DELIVERED':req.status='DELIVERED';po.status='DELIVERED'
-    audit(db,user,'DELIVERY_RECORDED',req,details={'status':data.status});db.flush();return row(d)
+    audit(db,user,'DELIVERY_RECORDED',req,details={'status':data.status,'actual_receipt_date':str(data.delivered_at),'expected_completion_at':str(data.expected_completion_at) if data.expected_completion_at else None});db.flush();return row(d)
 @router.post('/purchase-orders/{id}/invoice',status_code=201)
 def invoice(id:int,data:InvoiceIn,db:Session=DB,user=FIN):
     po=fetch(db,PurchaseOrder,id);req=request_for(db,po.requisition_id,user,True);state(req,'DELIVERED')
@@ -222,6 +309,14 @@ async def upload_document(db,user,req,file,quotation_id=None,invoice_id=None):
     data=await file.read(settings.max_upload+1);key,ctype,sha=storage.save(data)
     doc=Document(requisition_id=req.id,quotation_id=quotation_id,invoice_id=invoice_id,storage_key=key,backend=settings.storage_backend,sha256=sha,original_name=(file.filename or 'document').replace('\\','/').split('/')[-1][:180],content_type=ctype,size_bytes=len(data))
     db.add(doc);db.flush();audit(db,user,'DOCUMENT_UPLOADED',req,details={'document_id':doc.id,'sha256':sha});return {k:v for k,v in row(doc).items() if k!='storage_key'}
+
+@router.post('/vendor/quotations/{id}/file',status_code=201)
+async def vendor_quote_file(id:int,file:UploadFile=File(...),db:Session=DB,user=VENDOR):
+    vendor=vendor_for_user(db,user);q=fetch(db,Quotation,id)
+    if q.vendor_id!=vendor.id:raise HTTPException(403,'This quotation belongs to another vendor')
+    req=fetch(db,Requisition,q.requisition_id);state(req,'QUOTATIONS_RECEIVED','COMPARISON_READY')
+    return await upload_document(db,user,req,file,quotation_id=id)
+
 @router.post('/quotations/{id}/file',status_code=201)
 async def quote_file(id:int,file:UploadFile=File(...),db:Session=DB,user=PROC):
     q=fetch(db,Quotation,id);req=request_for(db,q.requisition_id,user,True);state(req,'QUOTATIONS_RECEIVED','COMPARISON_READY')
@@ -231,10 +326,10 @@ async def invoice_file(id:int,file:UploadFile=File(...),db:Session=DB,user=FIN):
     inv=fetch(db,Invoice,id);po=fetch(db,PurchaseOrder,inv.purchase_order_id);req=request_for(db,po.requisition_id,user,True);state(req,'INVOICED')
     return await upload_document(db,user,req,file,invoice_id=id)
 @router.get('/documents/{id}')
-def download(id:int,db:Session=DB,user=USER):
+def download(id:int,db:Session=DB,user=STAFF):
     doc=fetch(db,Document,id);request_for(db,doc.requisition_id,user)
     return Response(storage.read(doc),media_type=doc.content_type,headers={'Content-Disposition':f'attachment; filename="document-{id}"','X-Document-SHA256':doc.sha256,'X-Content-Type-Options':'nosniff'})
 @router.get('/requisitions/{id}/audit')
-def logs(id:int,db:Session=DB,user=USER):
+def logs(id:int,db:Session=DB,user=STAFF):
     request_for(db,id,user)
     return [dict(row(x),actor=fetch(db,Profile,x.actor_user_id).name if x.actor_user_id else 'Seed') for x in db.scalars(select(AuditLog).where(AuditLog.requisition_id==id).order_by(AuditLog.id))]

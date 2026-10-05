@@ -20,7 +20,7 @@ class Profile(Base):
     department_id=fk('departments',nullable=True)
     active=Column(Boolean,default=True,nullable=False)
     created_at=Column(DateTime(timezone=True),default=now,nullable=False)
-    __table_args__=(CheckConstraint("role IN ('requester','procurement','approver','finance_admin')"),)
+    __table_args__=(CheckConstraint("role IN ('requester','procurement','approver','finance_admin','vendor')"),)
 class Vendor(Base):
     __tablename__='vendors'
     id=Column(Integer,primary_key=True)
@@ -39,6 +39,7 @@ class Requisition(Base):
     status=Column(String(32),nullable=False,default='DRAFT',index=True)
     estimated_total=money(nullable=False)
     preferred_vendor_id=fk('vendors',nullable=True)
+    selection_reason=Column(String(2000),nullable=True)
     approval_plan=Column(JSON,nullable=True)
     created_at=Column(DateTime(timezone=True),default=now)
     submitted_at=Column(DateTime(timezone=True))
@@ -149,6 +150,7 @@ class Delivery(Base):
     purchase_order_id=fk('purchase_orders',nullable=False,index=True)
     status=Column(String(30),nullable=False)
     delivered_at=Column(Date,nullable=False)
+    expected_completion_at=Column(Date,nullable=True)
     notes=Column(String(2000),nullable=False)
 class Invoice(Base):
     __tablename__='invoices'

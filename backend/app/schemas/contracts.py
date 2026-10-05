@@ -44,6 +44,18 @@ class QuoteIn(Contract):
         if self.valid_until and self.valid_until < self.quotation_date: raise ValueError('Validity cannot precede quotation date')
         if self.quotation_date > date.today(): raise ValueError('Quotation date cannot be in the future')
         return self
+class VendorQuoteIn(Contract):
+    quotation_number:str=Field(min_length=1,max_length=80)
+    quotation_date:date
+    valid_until:date|None=None
+    delivery_days:int=Field(ge=0,le=3650)
+    delivery_terms:str=Field(default='',max_length=500)
+    items:list[QuoteLineIn]=Field(min_length=1,max_length=50)
+    @model_validator(mode='after')
+    def dates(self):
+        if self.valid_until and self.valid_until < self.quotation_date: raise ValueError('Validity cannot precede quotation date')
+        if self.quotation_date > date.today(): raise ValueError('Quotation date cannot be in the future')
+        return self
 class SelectionIn(Contract):
     vendor_id:int=Field(gt=0)
     comment:str=Field(min_length=5,max_length=2000)
@@ -53,10 +65,14 @@ class DecisionIn(Contract):
 class DeliveryIn(Contract):
     status:Literal['PARTIAL','DELIVERED']
     delivered_at:date
+    expected_completion_at:date|None=None
     notes:str=Field(min_length=3,max_length=2000)
     @model_validator(mode='after')
     def dates(self):
-        if self.delivered_at > date.today(): raise ValueError('Delivery cannot be in the future')
+        if self.delivered_at > date.today(): raise ValueError('Delivery receipt date cannot be in the future')
+        if self.status=='PARTIAL' and self.expected_completion_at and self.expected_completion_at < self.delivered_at:
+            raise ValueError('Expected completion cannot precede the partial receipt date')
+        if self.status=='DELIVERED': self.expected_completion_at=None
         return self
 class InvoiceIn(Contract):
     invoice_number:str=Field(min_length=1,max_length=80)
@@ -69,6 +85,6 @@ class InvoiceIn(Contract):
 class CommentIn(Contract):
     comment:str=Field(min_length=5,max_length=2000)
 class ProfileUpdate(Contract):
-    role:Literal['requester','procurement','approver','finance_admin']
+    role:Literal['requester','procurement','approver','finance_admin','vendor']
     active:bool
     department_id:int|None=None
