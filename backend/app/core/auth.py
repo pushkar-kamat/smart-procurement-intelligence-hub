@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.database import get_db
-from app.models.entities import Profile
+from app.models.entities import Profile, Vendor
 
 
 bearer = HTTPBearer(auto_error=False)
@@ -68,9 +68,12 @@ def current_user(
         )
     )
 
-    if not user:
-        email = claims.get("email")
+    vendor = None
+    email = claims.get("email")
+    if email:
+        vendor = db.scalar(select(Vendor).where(Vendor.email == email))
 
+    if not user:
         if not email:
             raise HTTPException(
                 status_code=403,
@@ -80,11 +83,18 @@ def current_user(
         user = Profile(
             supabase_user_id=claims["sub"],
             email=email,
-            name=email.split("@")[0],
-            role="requester",
+            name=vendor.name if vendor else email.split("@")[0],
+            role="vendor" if vendor and vendor.active else "requester",
         )
 
         db.add(user)
+        db.flush()
+    elif vendor and vendor.active and user.role == "requester":
+        # A verified identity that exactly matches a registered supplier is a vendor,
+        # not a public requester. This also repairs vendor profiles created before
+        # vendor-role seeding was introduced.
+        user.role = "vendor"
+        user.name = vendor.name
         db.flush()
 
     if not user.active:

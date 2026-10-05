@@ -66,6 +66,16 @@ def detail(db,req):
     result['invitations']=[dict(row(x),vendor=row(fetch(db,Vendor,x.vendor_id))) for x in db.scalars(select(Invitation).where(Invitation.requisition_id==req.id))]
     result['quotations']=[quote_view(db,q) for q in db.scalars(select(Quotation).where(Quotation.requisition_id==req.id))]
     result['approvals']=[row(x) for x in db.scalars(select(Approval).where(Approval.requisition_id==req.id).order_by(Approval.approval_level))]
+    if req.preferred_vendor_id:
+        vendor=fetch(db,Vendor,req.preferred_vendor_id)
+        result['preferred_vendor']=row(vendor)
+        selected=db.scalar(select(Quotation).where(Quotation.requisition_id==req.id,Quotation.vendor_id==req.preferred_vendor_id))
+        result['selected_quotation']=quote_view(db,selected) if selected else None
+        result['preferred_vendor_risk']=risk_for(db,req.preferred_vendor_id)
+    else:
+        result['preferred_vendor']=None
+        result['selected_quotation']=None
+        result['preferred_vendor_risk']=None
     po=db.scalar(select(PurchaseOrder).where(PurchaseOrder.requisition_id==req.id))
     result['purchase_order']=row(po) if po else None
     return result

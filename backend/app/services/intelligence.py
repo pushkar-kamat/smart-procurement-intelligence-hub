@@ -31,15 +31,42 @@ WEIGHTS={'late_delivery':30,'quotation_anomaly':25,'disputed_order':20,'incomple
 def vendor_risk(facts):
     pairs={'late_delivery':('late_deliveries','completed_orders'),'quotation_anomaly':('anomalous_lines','quotation_lines'),'disputed_order':('disputed_orders','total_orders'),'incomplete_order':('incomplete_orders','total_orders'),'invoice_mismatch':('invoice_mismatches','invoiced_orders')}
     factors=[]
+    available_weight=0
+    weighted_points=0
     for name,(n,d) in pairs.items():
-        den=facts.get(d,0); num=facts.get(n,0)
+        den=facts.get(d,0) or 0; num=facts.get(n,0) or 0
         rate=min(1,num/den) if den else None
-        factors.append({'factor':name,'numerator':num,'denominator':den,'rate_percent':round(rate*100,2) if rate is not None else None,'weight':WEIGHTS[name],'contribution':round(rate*WEIGHTS[name],2) if rate is not None else None})
-    if facts.get('total_orders',0)<3 or any(f['rate_percent'] is None for f in factors):
-        return {'score':None,'band':'INSUFFICIENT_HISTORY','factors':factors,'reason':'Insufficient completed history for all five factors; review the available evidence manually.'}
-    score=round(sum(x['contribution'] for x in factors),2)
+        contribution=round(rate*WEIGHTS[name],2) if rate is not None else None
+        if rate is not None:
+            available_weight+=WEIGHTS[name]
+            weighted_points+=contribution
+        factors.append({'factor':name,'numerator':num,'denominator':den,'rate_percent':round(rate*100,2) if rate is not None else None,'weight':WEIGHTS[name],'contribution':contribution})
+    total_orders=facts.get('total_orders',0) or 0
+    completed_orders=facts.get('completed_orders',0) or 0
+    if total_orders<3:
+        return {
+            'score':None,'band':'NEW_VENDOR','history_status':'PROVISIONAL','coverage_percent':round(available_weight,2),
+            'total_orders':total_orders,'completed_orders':completed_orders,'factors':factors,
+            'reason':'New supplier with fewer than 3 historical orders. No risk penalty is applied; procurement should use quotation quality and verification evidence until performance history develops.'
+        }
+    if not available_weight:
+        return {
+            'score':None,'band':'HISTORY_UNAVAILABLE','history_status':'REVIEW_REQUIRED','coverage_percent':0,
+            'total_orders':total_orders,'completed_orders':completed_orders,'factors':factors,
+            'reason':'Historical orders exist, but no measurable risk factors are available. Manual review is required.'
+        }
+    # Normalize across the factors for which evidence exists so established vendors are not
+    # marked "insufficient" just because one denominator (for example invoiced orders) is empty.
+    score=round(weighted_points/available_weight*100,2)
     band='Low' if score<=settings.risk_low else 'Medium' if score<=settings.risk_medium else 'High'
-    return {'score':score,'band':band,'factors':factors,'reason':'; '.join(f"{f['factor'].replace('_',' ')}: {f['rate_percent']}% × {f['weight']}% = {f['contribution']} points" for f in factors)+'. Human approval required.'}
+    coverage=round(available_weight,2)
+    observed=[f for f in factors if f['rate_percent'] is not None]
+    explanation='; '.join(f"{f['factor'].replace('_',' ')}: {f['rate_percent']}% × {f['weight']}% = {f['contribution']} points" for f in observed)
+    return {
+        'score':score,'band':band,'history_status':'ESTABLISHED','coverage_percent':coverage,
+        'total_orders':total_orders,'completed_orders':completed_orders,'factors':factors,
+        'reason':explanation+f'. Evidence coverage: {coverage:g}% of weighted factors. Human approval remains required.'
+    }
 
 def invoice_mismatch(amount,total):
     deviation=abs(float(amount)-float(total))/float(total)*100
