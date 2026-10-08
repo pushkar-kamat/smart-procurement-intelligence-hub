@@ -1,16 +1,44 @@
-# Secrets, local databases and generated dependencies
+# Secrets and environment files
 .env
 .env.*
 !.env.example
 !frontend/.env.example
+
+# Python
 .venv/
-node_modules/
-dist/
 __pycache__/
 .pytest_cache/
 *.pyc
+
+# Node / frontend build
+node_modules/
+dist/
+frontend/node_modules/
+frontend/dist/
+
+# Local databases
 *.db
 *.sqlite*
+backend/procurement-local*.db
+
+# Uploads and logs
 uploads/
+backend/uploads/
 *.log
 playwright-report/
+
+# Temporary patch / backup files
+*.before-*
+patch/
+payload/
+files/
+patch_manifest.json
+
+# Patch installer files
+APPLY_*.cmd
+apply_*.py
+apply_*.ps1DROPDOWN_FIX_README.md
+
+# Legacy UI patch scripts
+apply_*.ps1
+DROPDOWN_FIX_README.md

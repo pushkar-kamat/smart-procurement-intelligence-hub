@@ -24,6 +24,32 @@ class VendorIn(Contract):
     email:str=Field(min_length=3,max_length=254,pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
     contact:str=Field(default='',max_length=80)
     active:bool=True
+class VendorApplicationIn(Contract):
+    legal_name:Text
+    trading_name:str=Field(default='',max_length=120)
+    contact_name:Text
+    email:str=Field(min_length=3,max_length=254,pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+    phone:str=Field(min_length=7,max_length=40)
+    tax_id:str=Field(min_length=5,max_length=60)
+    registration_number:str=Field(min_length=3,max_length=80)
+    address:str=Field(min_length=8,max_length=500)
+    categories:str=Field(min_length=3,max_length=500)
+    website:str=Field(default='',max_length=200)
+    years_in_business:int=Field(default=0,ge=0,le=200)
+    notes:str=Field(default='',max_length=1000)
+    declaration:bool
+    @model_validator(mode='after')
+    def declaration_required(self):
+        if not self.declaration: raise ValueError('Confirm the supplier declaration before submitting')
+        return self
+class VendorApplicationDecision(Contract):
+    decision:Literal['APPROVED','REJECTED']
+    comment:str=Field(min_length=5,max_length=2000)
+class VendorAccessCheck(Contract):
+    email:str=Field(min_length=3,max_length=254,pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
+class VendorApplicationTrack(Contract):
+    application_number:str=Field(min_length=8,max_length=32)
+    email:str=Field(min_length=3,max_length=254,pattern=r'^[^\s@]+@[^\s@]+\.[^\s@]+$')
 class InviteIn(Contract):
     vendor_id:int=Field(gt=0)
 class QuoteLineIn(Contract):

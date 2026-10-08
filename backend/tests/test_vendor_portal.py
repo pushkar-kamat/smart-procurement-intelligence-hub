@@ -40,7 +40,7 @@ def test_vendor_portal_rfq_to_procurement_flow(env):
         'delivery_terms':'Campus delivery with one-year warranty',
         'items':[{'requisition_item_id':entry['items'][0]['id'],'unit_price':51000,'tax_percent':18,'discount':0}],
     }),201)
-    assert quote['vendor']['email']=='vendor@example.com'
+    assert quote['vendor']['email']=='vendor@procure.com'
 
     # A vendor cannot submit twice and cannot see staff comparison endpoints.
     assert c.post(PREFIX+f"/vendor/rfqs/{req['id']}/quotation",json={
@@ -121,8 +121,40 @@ def test_approval_inbox_contains_vendor_reason_and_final_rfq_status(env):
     assert item['selected_quotation']['quotation_number']=='APP-Q-1'
     assert next(i for i in item['invitations'] if i['vendor_id']==1)['status']=='SELECTED_FOR_APPROVAL'
     ok(c.post(url+'/approval',json={'decision':'APPROVED','comment':'Technical and sourcing evidence checked.'}))
-    login('finance_admin')
-    ok(c.post(url+'/approval',json={'decision':'APPROVED','comment':'Budget authorization completed.'}))
     login('procurement')
     final=ok(c.get(url))
     assert next(i for i in final['invitations'] if i['vendor_id']==1)['status']=='APPROVED'
+
+
+def test_procurement_registration_creates_provisional_vendor_profile(env):
+    c,login,_=env
+    login('procurement')
+    created=ok(c.post(PREFIX+'/vendors',json={
+        'name':'Provisional Demo Supplier',
+        'email':'provisional-demo@example.com',
+        'contact':'Onboarding desk',
+        'active':True,
+    }),201)
+    assert created['lifecycle']=='PROVISIONAL'
+    assert created['risk']['band']=='NEW_VENDOR'
+    assert created['risk']['score'] is None
+    assert created['risk']['total_orders']==0
+
+    listed=ok(c.get(PREFIX+'/vendors'))
+    vendor=next(v for v in listed if v['id']==created['id'])
+    assert vendor['lifecycle']=='PROVISIONAL'
+    assert vendor['risk']['score'] is None
+
+    risk=ok(c.get(PREFIX+f"/vendors/{created['id']}/risk"))
+    assert risk['history_status']=='PROVISIONAL'
+    assert risk['band']=='NEW_VENDOR'
+
+
+def test_duplicate_vendor_email_is_rejected(env):
+    c,login,_=env
+    login('procurement')
+    payload={'name':'Duplicate Email One','email':'duplicate-vendor@example.com','contact':'','active':True}
+    ok(c.post(PREFIX+'/vendors',json=payload),201)
+    payload['name']='Duplicate Email Two'
+    response=c.post(PREFIX+'/vendors',json=payload)
+    assert response.status_code==409

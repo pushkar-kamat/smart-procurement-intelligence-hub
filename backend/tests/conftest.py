@@ -33,9 +33,9 @@ def env(tmp_path,monkeypatch):
     with sessions.begin() as db:
         seed(db)
         vendor=db.get(Vendor,1)
-        vendor.email='vendor@example.com'
+        vendor.email='vendor@procure.com'
         for name,role in [('procurement','procurement'),('approver','approver'),('finance','finance_admin'),('other','requester'),('vendor','vendor')]:
-            db.add(Profile(supabase_user_id=name,email=name+'@example.com',name=name,role=role))
+            db.add(Profile(supabase_user_id=name,email=name+'@procure.com',name=name,role=role))
     def override():
         with sessions() as db:
             try:yield db;db.commit()
@@ -43,7 +43,7 @@ def env(tmp_path,monkeypatch):
     app.dependency_overrides[get_db]=override
     def login(role):
         with sessions() as db:
-            email={'requester':'requester','finance_admin':'finance'}.get(role,role)+'@example.com'
+            email={'requester':'requester','finance_admin':'finance'}.get(role,role)+'@procure.com'
             user=db.scalar(select(Profile).where(Profile.email==email))
         app.dependency_overrides[current_user]=lambda:user
         return user

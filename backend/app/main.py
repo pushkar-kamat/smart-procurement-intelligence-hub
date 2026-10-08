@@ -10,6 +10,8 @@ from app.core.database import get_db
 from app.core.auth import roles
 from app.core.config import settings
 from app.routers.procurement import router
+from app.routers.vendor_onboarding import router as vendor_onboarding_router
+from app.routers.local_auth import router as local_auth_router
 app=FastAPI(title='Smart Procurement Intelligence Hub',version='1.0.0',description='BCA-08 • human-controlled procurement with explainable decision support')
 app.add_middleware(CORSMiddleware,allow_origins=[x.strip() for x in settings.frontend_url.split(',')],allow_credentials=False,allow_methods=['GET','POST','PUT','PATCH','OPTIONS'],allow_headers=['Authorization','Content-Type'])
 logger=logging.getLogger('procurement');logging.basicConfig(level=logging.INFO,format='%(message)s')
@@ -37,7 +39,11 @@ async def controlled_failure(request,exc):
     return JSONResponse(status_code=500,content={'detail':'Unexpected server error; contact administrator'})
 @app.get('/health')
 def health(db=Depends(get_db,scope="function")):
-    db.execute(text('SELECT 1'));return {'status':'ok','database':'reachable','auth_configured':bool(settings.supabase_url),'storage':settings.storage_backend}
+    db.execute(text('SELECT 1'))
+    auth_configured=(bool(settings.local_auth_secret) if settings.auth_provider=='local' else bool(settings.supabase_url))
+    return {'status':'ok','database':'reachable','auth_provider':settings.auth_provider,'auth_configured':auth_configured,'storage':settings.storage_backend}
 @app.get('/metrics')
 def metrics(user=Depends(roles('finance_admin'))):return {'counters':dict(counters),'scope':'this process since startup'}
 app.include_router(router)
+app.include_router(vendor_onboarding_router)
+app.include_router(local_auth_router)

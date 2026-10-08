@@ -17,7 +17,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react";
-import { api, send, supabase } from "./api";
+import { api, send, authClient, authProvider } from "./api";
 import {
   cash,
   human,
@@ -25,11 +25,13 @@ import {
   Protected,
   RoleAction,
   Field,
+  MonoSelect,
   Empty,
   Docs,
   ComparisonMatrix,
   validateRequisition,
 } from "./components";
+import { VendorApplicationPage, VendorApplicationStatusPage, VendorApplicationsPanel } from "./VendorOnboarding";
 const Auth = React.createContext(null);
 const useAuth = () => React.useContext(Auth);
 const Theme = React.createContext(null);
@@ -116,7 +118,7 @@ export default function App() {
     localStorage.setItem("procure-theme", theme);
   }, [theme]);
   useEffect(() => {
-    if (!supabase) {
+    if (!authClient.configured) {
       setReady(true);
       return;
     }
@@ -137,7 +139,7 @@ export default function App() {
           (portalIntent === "staff" && p.role === "vendor");
         if (wrongPortal) {
           sessionStorage.removeItem("procure-login-portal");
-          await supabase.auth.signOut();
+          await authClient.signOut();
           if (active) {
             setUser(null);
             setError(
@@ -159,10 +161,10 @@ export default function App() {
         if (active) setReady(true);
       }
     };
-    supabase.auth.getSession().then(({ data }) => load(data.session));
+    authClient.getSession().then(({ data }) => load(data.session));
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = authClient.onAuthStateChange((_event, session) => {
       setTimeout(() => load(session), 0);
     });
     return () => {
@@ -179,6 +181,14 @@ export default function App() {
           <Route
             path="/login"
             element={user ? <Navigate to="/" /> : <Login portal="staff" error={error} />}
+          />
+          <Route
+            path="/vendor-apply"
+            element={user ? <Navigate to="/" /> : <VendorApplicationPage />}
+          />
+          <Route
+            path="/vendor-status"
+            element={user ? <Navigate to="/" /> : <VendorApplicationStatusPage />}
           />
           <Route
             path="/vendor-login"
@@ -204,11 +214,25 @@ function Login({ error, portal = "staff" }) {
     [confirmPassword, setConfirmPassword] = useState(""),
     [showPassword, setShowPassword] = useState(false),
     [signup, setSignup] = useState(false),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [credentialEntryEnabled, setCredentialEntryEnabled] = useState(false);
 
   useEffect(() => {
     if (vendorPortal) setSignup(false);
     setNotice("");
+    setEmail("");
+    setPassword("");
+    setConfirmPassword("");
+    setShowPassword(false);
+    setCredentialEntryEnabled(false);
+
+    const clearSavedCredentialPaint = window.setTimeout(() => {
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+    }, 120);
+
+    return () => window.clearTimeout(clearSavedCredentialPaint);
   }, [vendorPortal]);
 
   const portalLabel = vendorPortal ? "Vendor portal" : "Procurement workspace";
@@ -261,7 +285,6 @@ function Login({ error, portal = "staff" }) {
               <strong>{vendorPortal ? "History earned" : "Every action recorded"}</strong>
             </article>
           </div>
-
         </section>
 
         <section className="auth-panel-wrap">
@@ -270,66 +293,113 @@ function Login({ error, portal = "staff" }) {
               <span className="auth-panel-mark">{vendorPortal ? "V" : "P"}</span>
               <div>
                 <p className="eyebrow">{vendorPortal ? "SUPPLIER ACCESS" : "TEAM ACCESS"}</p>
-                <h2>{signup ? "Create requester account" : vendorPortal ? "Vendor sign in" : "Welcome back"}</h2>
+                <h2>
+                  {signup
+                    ? vendorPortal
+                      ? "Create supplier account"
+                      : "Create requester account"
+                    : vendorPortal
+                      ? "Vendor sign in"
+                      : "Welcome back"}
+                </h2>
               </div>
             </div>
             <p className="muted auth-panel-copy">
               {signup
-                ? "Create a requester account for your organisation." 
+                ? vendorPortal
+                  ? "Portal accounts are available only after Procurement approves your supplier application."
+                  : "Create a requester account for your organisation."
                 : vendorPortal
-                  ? "Use the supplier identity linked to your registered vendor profile."
+                  ? "Use the supplier identity linked to your approved vendor profile."
                   : "Sign in as requester, procurement, approver or finance admin."}
             </p>
-
-            {!supabase && (
+            {!authClient.configured && (
               <p className="error">
-                Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in frontend/.env, then restart Vite.
+                {authProvider === "supabase"
+                  ? "Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then restart Vite."
+                  : "Local authentication is not configured."}
               </p>
             )}
             <ErrorBox error={error} />
             <ActionForm
               label={signup ? "Create account" : vendorPortal ? "Enter vendor portal" : "Sign in"}
               onSubmit={async () => {
-                if (!supabase) throw Error("Supabase configuration is required");
+                if (!authClient.configured) throw Error("Authentication is not configured");
                 if (signup && password !== confirmPassword) throw Error("Passwords do not match.");
+                if (signup && vendorPortal) {
+                  const access = await send("/api/v1/vendor-access-check", { email });
+                  if (!access.eligible) throw Error(access.message);
+                }
                 sessionStorage.setItem("procure-login-portal", vendorPortal ? "vendor" : "staff");
                 const { error } = signup
-                  ? await supabase.auth.signUp({ email, password })
-                  : await supabase.auth.signInWithPassword({ email, password });
+                  ? await authClient.signUp({
+                      email,
+                      password,
+                      portal: vendorPortal ? "vendor" : "requester",
+                    })
+                  : await authClient.signInWithPassword({ email, password });
                 if (error) {
                   sessionStorage.removeItem("procure-login-portal");
                   throw error;
                 }
                 if (signup) {
                   sessionStorage.removeItem("procure-login-portal");
-                  setNotice("Check your email to confirm your account, then sign in.");
+                  setNotice(
+                    authProvider === "local"
+                      ? "Local account created. Opening your workspace…"
+                      : "Check your email to confirm your account, then sign in.",
+                  );
                 }
               }}
             >
               <Field label="Email address">
                 <input
                   type="email"
+                  name="procure-login-identity"
                   value={email}
+                  readOnly={!credentialEntryEnabled}
+                  onFocus={() => {
+                    if (!credentialEntryEnabled) {
+                      setEmail("");
+                      setPassword("");
+                      setCredentialEntryEnabled(true);
+                    }
+                  }}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoComplete="email"
-                  placeholder={vendorPortal ? "supplier@company.com" : "name@organisation.com"}
+                  autoComplete="off"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  data-lpignore="true"
+                  data-1p-ignore="true"
+                  placeholder={vendorPortal ? "vendor@procure.com" : "name@procure.com"}
                 />
               </Field>
               <Field label="Password">
                 <div className="password-wrap">
                   <input
                     type={showPassword ? "text" : "password"}
+                    name="procure-login-secret"
                     minLength={8}
                     value={password}
+                    readOnly={!credentialEntryEnabled}
+                    onFocus={() => {
+                      if (!credentialEntryEnabled) {
+                        setEmail("");
+                        setPassword("");
+                        setCredentialEntryEnabled(true);
+                      }
+                    }}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    autoComplete={signup ? "new-password" : "current-password"}
+                    autoComplete="new-password"
+                    data-lpignore="true"
+                    data-1p-ignore="true"
                     placeholder="Enter your password"
                   />
                   <button
                     type="button"
-                    className="icon-button"
+                    className="icon-button password-eye-neutral"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                     onClick={() => setShowPassword(!showPassword)}
                   >
@@ -337,7 +407,7 @@ function Login({ error, portal = "staff" }) {
                   </button>
                 </div>
               </Field>
-              {signup && !vendorPortal && (
+              {signup && (
                 <Field label="Confirm password">
                   <input
                     type={showPassword ? "text" : "password"}
@@ -358,8 +428,8 @@ function Login({ error, portal = "staff" }) {
                 className="link auth-link"
                 onClick={async () => {
                   if (!email) return setNotice("Enter your email address first.");
-                  if (!supabase) return setNotice("Supabase configuration is required.");
-                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  if (!authClient.configured) return setNotice("Authentication is not configured.");
+                  const { error } = await authClient.resetPasswordForEmail(email, {
                     redirectTo: window.location.origin + "/reset-password",
                   });
                   setNotice(error ? error.message : "Password reset link sent. Check your email.");
@@ -374,9 +444,28 @@ function Login({ error, portal = "staff" }) {
               </button>
             )}
             {vendorPortal && (
-              <p className="vendor-access-note">
-                Vendor access is invitation-only. Procurement links each supplier login to one registered vendor profile.
-              </p>
+              <>
+                <button className="link auth-create-link" onClick={() => setSignup(!signup)}>
+                  {signup
+                    ? "Already have supplier access? Sign in"
+                    : "Approved supplier? Create portal account"}
+                </button>
+                <div className="vendor-access-note supplier-onboarding-note">
+                  <strong>New supplier?</strong>
+                  <span>
+                    Submit your organisation details first. Procurement reviews the application
+                    before vendor access or performance scoring is enabled.
+                  </span>
+                  <div className="supplier-onboarding-actions">
+                    <Link className="portal-switch-link" to="/vendor-apply">
+                      Apply to become a vendor <ArrowUpRight size={15} />
+                    </Link>
+                    <Link className="portal-switch-link" to="/vendor-status">
+                      Track application <ArrowUpRight size={15} />
+                    </Link>
+                  </div>
+                </div>
+              </>
             )}
             <div className="portal-switch auth-switch">
               <span>{vendorPortal ? "Part of the buying team?" : "Registered supplier?"}</span>
@@ -404,40 +493,82 @@ function ResetPassword() {
   return (
     <div className="auth-standalone">
       <section className="auth-card">
-        <div className="brand"><span className="brand-icon">p.</span>procure<span className="brand-dot">/</span></div>
+        <div className="brand">
+          <span className="brand-icon">p.</span>procure<span className="brand-dot">/</span>
+        </div>
         <h1>Set a new password</h1>
         <p className="muted">Choose a new password for your procurement account.</p>
-        <ActionForm label="Update password" onSubmit={async () => {
-          if (!supabase) throw Error("Supabase configuration is required");
-          if (password !== confirm) throw Error("Passwords do not match.");
-          const { error } = await supabase.auth.updateUser({ password });
-          if (error) throw error;
-          setNotice("Password updated. You can return to your workspace.");
-        }}>
-          <Field label="New password"><div className="password-wrap"><input required minLength={8} type={show ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} /><button type="button" className="icon-button" onClick={() => setShow(!show)}>{show ? <EyeOff size={17}/> : <Eye size={17}/>}</button></div></Field>
-          <Field label="Confirm password"><input required minLength={8} type={show ? "text" : "password"} value={confirm} onChange={(e) => setConfirm(e.target.value)} /></Field>
+        <ActionForm
+          label="Update password"
+          onSubmit={async () => {
+            if (!authClient.configured) throw Error("Authentication is not configured");
+            if (password !== confirm) throw Error("Passwords do not match.");
+            const { error } = await authClient.updateUser({ password });
+            if (error) throw error;
+            setNotice("Password updated. You can return to your workspace.");
+          }}
+        >
+          <Field label="New password">
+            <div className="password-wrap">
+              <input
+                required
+                minLength={8}
+                type={show ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="icon-button password-eye-neutral"
+                aria-label={show ? "Hide password" : "Show password"}
+                onClick={() => setShow(!show)}
+              >
+                {show ? <EyeOff size={17} /> : <Eye size={17} />}
+              </button>
+            </div>
+          </Field>
+          <Field label="Confirm password">
+            <input
+              required
+              minLength={8}
+              type={show ? "text" : "password"}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+            />
+          </Field>
         </ActionForm>
         {notice && <p className="notice">{notice}</p>}
-        <Link className="link" to="/login">Return to sign in</Link>
+        <Link className="link" to="/login">
+          Return to sign in
+        </Link>
       </section>
     </div>
   );
 }
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
-  return <button className="theme-toggle" aria-label="Toggle color theme" onClick={() => setTheme(theme === "dark" ? "light" : "dark")}>{theme === "dark" ? <Sun size={16}/> : <Moon size={16}/>}<span>{theme === "dark" ? "Light" : "Dark"}</span></button>;
+  return (
+    <button
+      className="theme-toggle"
+      aria-label="Toggle color theme"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+    >
+      {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+      <span>{theme === "dark" ? "Light" : "Dark"}</span>
+    </button>
+  );
 }
 function StaffShell() {
   const { user } = useAuth();
   const navItems = [
-          ["/", "Overview", LayoutDashboard],
-          ["/requisitions", "Requisitions", ClipboardList],
-          ["/vendors", "Vendors", Building2],
-          ...(["approver", "finance_admin"].includes(user.role)
-            ? [["/approvals", "Approval inbox", ShieldCheck]]
-            : []),
-          ...(user.role === "finance_admin" ? [["/operations", "Operations", Activity]] : []),
-        ];
+    ["/", "Overview", LayoutDashboard],
+    ["/requisitions", "Requisitions", ClipboardList],
+    ["/vendors", "Vendors", Building2],
+    ...(["approver", "finance_admin"].includes(user.role)
+      ? [["/approvals", "Approval inbox", ShieldCheck]]
+      : []),
+    ...(user.role === "finance_admin" ? [["/operations", "Operations", Activity]] : []),
+  ];
   return (
     <div className="shell staff-shell">
       <aside>
@@ -466,7 +597,7 @@ function StaffShell() {
               <strong>{user.name}</strong>
               <small>{human(user.role)}</small>
             </div>
-            <button aria-label="Sign out" onClick={() => supabase.auth.signOut()}>
+            <button aria-label="Sign out" onClick={() => authClient.signOut()}>
               <LogOut size={17} />
             </button>
           </div>
@@ -481,7 +612,10 @@ function StaffShell() {
         </div>
         <div className="content">
           <Routes>
-            <Route path="/" element={user.role === "vendor" ? <VendorDashboard /> : <Dashboard />} />
+            <Route
+              path="/"
+              element={user.role === "vendor" ? <VendorDashboard /> : <Dashboard />}
+            />
             <Route path="/requisitions" element={<RequestList />} />
             <Route path="/requisitions/new" element={<RequisitionForm />} />
             <Route path="/requisitions/:id/edit" element={<RequisitionForm />} />
@@ -499,20 +633,61 @@ function StaffShell() {
 }
 function VendorShell() {
   const { user } = useAuth();
-  const navItems=[["/","Vendor overview",LayoutDashboard],["/vendor-rfqs","RFQ inbox",ClipboardList]];
-  return <div className="shell vendor-shell">
-    <aside>
-      <div className="brand"><span className="brand-icon">p.</span>procure<span className="brand-dot">/</span></div>
-      <p className="nav-label">SUPPLIER PORTAL</p>
-      <nav>{navItems.map(([to,label,Icon])=><NavLink key={to} to={to} end={to==="/"}><Icon size={18}/>{label}</NavLink>)}</nav>
-      <div className="sidebar-bottom">
-        <div className="workspace-meta">REGISTERED SUPPLIER<br/><small>RFQ &amp; quotation workspace</small></div>
-        <ThemeToggle />
-        <div className="user"><span className="avatar">{user.name.slice(0,1).toUpperCase()}</span><div><strong>{user.name}</strong><small>Vendor account</small></div><button aria-label="Sign out" onClick={() => supabase.auth.signOut()}><LogOut size={17}/></button></div>
-      </div>
-    </aside>
-    <main><div className="topbar"><span>Supplier workspace <ChevronRight size={14}/> Secure RFQ channel</span><span className="live-dot">Private vendor view</span></div><div className="content"><Routes><Route path="/" element={<VendorDashboard/>}/><Route path="/vendor-rfqs" element={<VendorRfqs/>}/><Route path="*" element={<Navigate to="/"/>}/></Routes></div></main>
-  </div>;
+  const navItems = [
+    ["/", "Vendor overview", LayoutDashboard],
+    ["/vendor-rfqs", "RFQ inbox", ClipboardList],
+  ];
+  return (
+    <div className="shell vendor-shell">
+      <aside>
+        <div className="brand">
+          <span className="brand-icon">p.</span>procure<span className="brand-dot">/</span>
+        </div>
+        <p className="nav-label">SUPPLIER PORTAL</p>
+        <nav>
+          {navItems.map(([to, label, Icon]) => (
+            <NavLink key={to} to={to} end={to === "/"}>
+              <Icon size={18} />
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="sidebar-bottom">
+          <div className="workspace-meta">
+            REGISTERED SUPPLIER
+            <br />
+            <small>RFQ &amp; quotation workspace</small>
+          </div>
+          <ThemeToggle />
+          <div className="user">
+            <span className="avatar">{user.name.slice(0, 1).toUpperCase()}</span>
+            <div>
+              <strong>{user.name}</strong>
+              <small>Vendor account</small>
+            </div>
+            <button aria-label="Sign out" onClick={() => authClient.signOut()}>
+              <LogOut size={17} />
+            </button>
+          </div>
+        </div>
+      </aside>
+      <main>
+        <div className="topbar">
+          <span>
+            Supplier workspace <ChevronRight size={14} /> Secure RFQ channel
+          </span>
+          <span className="live-dot">Private vendor view</span>
+        </div>
+        <div className="content">
+          <Routes>
+            <Route path="/" element={<VendorDashboard />} />
+            <Route path="/vendor-rfqs" element={<VendorRfqs />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </div>
+      </main>
+    </div>
+  );
 }
 function Dashboard() {
   const { data, error } = useLoad("/api/v1/requisitions"),
@@ -649,7 +824,7 @@ function RequestList() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <select
+          <MonoSelect
             aria-label="Filter status"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
@@ -658,7 +833,7 @@ function RequestList() {
             {[...new Set(data?.map((r) => r.status))].map((s) => (
               <option key={s}>{s}</option>
             ))}
-          </select>
+          </MonoSelect>
         </div>
         <RequestTable
           rows={data?.filter(
@@ -747,8 +922,9 @@ function RequisitionForm() {
             />
           </Field>
           <Field label="Department">
-            <select
+            <MonoSelect
               required
+              aria-label="Department"
               value={form.department_id}
               onChange={(e) => update("department_id", e.target.value)}
             >
@@ -760,7 +936,7 @@ function RequisitionForm() {
                     {d.name}
                   </option>
                 ))}
-            </select>
+            </MonoSelect>
           </Field>
         </div>
         <Field label="Business justification">
@@ -787,20 +963,20 @@ function RequisitionForm() {
                   <input
                     required={key !== "description"}
                     type={type}
-                   min={
-  key === 'quantity'
-    ? '0.001'
-    : key === 'estimated_unit_price'
-      ? '0.01'
-      : undefined
-}
-step={
-  key === 'quantity'
-    ? '0.001'
-    : key === 'estimated_unit_price'
-      ? '0.01'
-      : undefined
-}
+                    min={
+                      key === "quantity"
+                        ? "0.001"
+                        : key === "estimated_unit_price"
+                          ? "0.01"
+                          : undefined
+                    }
+                    step={
+                      key === "quantity"
+                        ? "0.001"
+                        : key === "estimated_unit_price"
+                          ? "0.01"
+                          : undefined
+                    }
                     value={item[key]}
                     onChange={(e) =>
                       update(
@@ -1068,7 +1244,9 @@ function ApprovalPanel({ req, refresh }) {
           </div>
           <div className="decision-meta">
             <Badge value={req.preferred_vendor_risk?.band || "REVIEW"} />
-            <strong>{req.selected_quotation ? cash(req.selected_quotation.grand_total) : "—"}</strong>
+            <strong>
+              {req.selected_quotation ? cash(req.selected_quotation.grand_total) : "—"}
+            </strong>
             <small>Selected quotation</small>
           </div>
         </div>
@@ -1090,15 +1268,20 @@ function ApprovalPanel({ req, refresh }) {
       {req.status === "PENDING_APPROVAL" && (
         <p className="notice">
           Next: {next.name} · {human(next.role)}
+          {next.reason ? <><br /><small>{next.reason}</small></> : null}
         </p>
       )}
       {req.status === "PENDING_APPROVAL" && next.role === user.role && (
         <>
           <Field label="Decision">
-            <select value={decision} onChange={(e) => setDecision(e.target.value)}>
+            <MonoSelect
+              aria-label="Decision"
+              value={decision}
+              onChange={(e) => setDecision(e.target.value)}
+            >
               <option>APPROVED</option>
               <option>REJECTED</option>
-            </select>
+            </MonoSelect>
           </Field>
           <CommentAction
             label="Record decision"
@@ -1127,7 +1310,11 @@ function Upload({ path, onDone }) {
     >
       <Field label="PDF, PNG or JPEG · maximum 10 MB by default">
         <label className="file-picker">
-          <input type="file" accept="application/pdf,image/png,image/jpeg" onChange={(e) => setFile(e.target.files[0])} />
+          <input
+            type="file"
+            accept="application/pdf,image/png,image/jpeg"
+            onChange={(e) => setFile(e.target.files[0])}
+          />
           <span>{file ? file.name : "Select document"}</span>
           <b>{file ? "Change" : "Browse"}</b>
         </label>
@@ -1140,8 +1327,8 @@ function Quotations({ req }) {
     <section className="panel form-panel">
       <h2>Vendor-submitted quotations</h2>
       <p className="muted">
-        Quotations shown here are submitted by invited vendors through their own portal.
-        Procurement compares the received offers but does not create them on a vendor's behalf.
+        Quotations shown here are submitted by invited vendors through their own portal. Procurement
+        compares the received offers but does not create them on a vendor's behalf.
       </p>
       {!req.quotations.length && <Empty>No vendor quotations received yet.</Empty>}
       {req.quotations.map((q) => (
@@ -1206,8 +1393,9 @@ function QuoteForm({ req, editing, onDone, onCancel }) {
       >
         <div className="grid3">
           <Field label="Invited vendor">
-            <select
+            <MonoSelect
               required
+              aria-label="Invited vendor"
               disabled={!!editing}
               value={form.vendor_id}
               onChange={(e) => update("vendor_id", e.target.value)}
@@ -1224,7 +1412,7 @@ function QuoteForm({ req, editing, onDone, onCancel }) {
                     {i.vendor.name}
                   </option>
                 ))}
-            </select>
+            </MonoSelect>
           </Field>
           <Field label="Quotation number">
             <input
@@ -1338,15 +1526,27 @@ function Comparison({ req, refresh }) {
           <div className="form-panel">
             <h3>Propose a vendor for approval</h3>
             <Field label="Preferred vendor">
-              <select value={vendor} onChange={(e) => setVendor(e.target.value)}>
+              <MonoSelect
+                aria-label="Preferred vendor"
+                value={vendor}
+                onChange={(e) => setVendor(e.target.value)}
+              >
                 <option value="">Select vendor</option>
                 {req.quotations.map((q) => (
                   <option key={q.vendor_id} value={q.vendor_id}>
                     {q.vendor.name} · {cash(q.grand_total)}
                   </option>
                 ))}
-              </select>
+              </MonoSelect>
             </Field>
+            {data?.quotations?.find((q) => String(q.vendor_id) === String(vendor))?.risk?.band ===
+              "NEW_VENDOR" && (
+              <p className="notice">
+                Provisional vendor: there is not enough historical performance for a numeric risk score.
+                No penalty is applied. Review quotation quality and record clear selection reasoning before
+                sending this vendor for human approval.
+              </p>
+            )}
             <CommentAction
               label="Send for approval"
               onSubmit={async (comment) => {
@@ -1410,24 +1610,53 @@ function VendorDashboard() {
       </Header>
       <ErrorBox error={error} />
       <div className="stats">
-        <div className="stat"><p>Open RFQs</p><strong>{data.open_rfqs}</strong><small>Awaiting your quotation</small></div>
-        <div className="stat"><p>Submitted quotations</p><strong>{data.submitted_quotations}</strong><small>Offers recorded in the platform</small></div>
-        <div className="stat"><p>Purchase orders</p><strong>{data.purchase_orders}</strong><small>Orders awarded to your company</small></div>
-        <div className="stat"><p>Risk band</p><strong>{human(data.risk.band)}</strong><small>{data.risk.score === null ? "Neutral until history develops" : data.risk.score + " / 100"}</small></div>
+        <div className="stat">
+          <p>Open RFQs</p>
+          <strong>{data.open_rfqs}</strong>
+          <small>Awaiting your quotation</small>
+        </div>
+        <div className="stat">
+          <p>Submitted quotations</p>
+          <strong>{data.submitted_quotations}</strong>
+          <small>Offers recorded in the platform</small>
+        </div>
+        <div className="stat">
+          <p>Purchase orders</p>
+          <strong>{data.purchase_orders}</strong>
+          <small>Orders awarded to your company</small>
+        </div>
+        <div className="stat">
+          <p>Risk band</p>
+          <strong>{human(data.risk.band)}</strong>
+          <small>
+            {data.risk.score === null
+              ? "Neutral until history develops"
+              : data.risk.score + " / 100"}
+          </small>
+        </div>
       </div>
       <section className="panel form-panel">
         <h2>Performance record</h2>
         <p>{data.risk.reason}</p>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Factor</th><th>Observations</th><th>Weight</th><th>Contribution</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Factor</th>
+                <th>Observations</th>
+                <th>Weight</th>
+                <th>Contribution</th>
+              </tr>
+            </thead>
             <tbody>
               {data.risk.factors.map((f) => (
                 <tr key={f.factor}>
                   <td>{human(f.factor)}</td>
-                  <td>{f.numerator} / {f.denominator}</td>
+                  <td>
+                    {f.numerator} / {f.denominator}
+                  </td>
                   <td>{f.weight}%</td>
-                  <td>{f.contribution ?? "Not scored"}</td>
+                  <td>{data.risk.score === null ? "Not scored" : (f.contribution ?? "Not scored")}</td>
                 </tr>
               ))}
             </tbody>
@@ -1449,7 +1678,7 @@ function VendorRfqs() {
       />
       <ErrorBox error={error} />
       {!data && <Empty>Loading RFQs…</Empty>}
-      {data?.length === 0 && <Empty>No RFQs have been sent to your company yet.</Empty>}
+      {data?.length === 0 && <Empty>No RFQs are available for your company yet.</Empty>}
       {data?.map((entry) => (
         <section className="panel form-panel" key={entry.invitation.id}>
           <div className="section-head">
@@ -1462,13 +1691,22 @@ function VendorRfqs() {
           <p>{entry.requisition.justification}</p>
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Item</th><th>Category</th><th>Quantity</th><th>Specification</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Category</th>
+                  <th>Quantity</th>
+                  <th>Specification</th>
+                </tr>
+              </thead>
               <tbody>
                 {entry.items.map((item) => (
                   <tr key={item.id}>
                     <td>{item.item_name}</td>
                     <td>{item.category}</td>
-                    <td>{item.quantity} {item.unit}</td>
+                    <td>
+                      {item.quantity} {item.unit}
+                    </td>
                     <td>{item.description || "—"}</td>
                   </tr>
                 ))}
@@ -1478,7 +1716,10 @@ function VendorRfqs() {
           {entry.quotation ? (
             <div className="quote-card">
               <div className="section-head">
-                <div><h3>Submitted quotation</h3><small>{entry.quotation.quotation_number}</small></div>
+                <div>
+                  <h3>Submitted quotation</h3>
+                  <small>{entry.quotation.quotation_number}</small>
+                </div>
                 <strong>{cash(entry.quotation.grand_total)}</strong>
               </div>
               <Docs documents={entry.quotation.documents} />
@@ -1528,17 +1769,58 @@ function VendorQuoteForm({ entry, onDone }) {
         }}
       >
         <div className="grid3">
-          <Field label="Quotation number"><input required value={form.quotation_number} onChange={(e) => update("quotation_number", e.target.value)} /></Field>
-          <Field label="Quotation date"><input required type="date" value={form.quotation_date} onChange={(e) => update("quotation_date", e.target.value)} /></Field>
-          <Field label="Valid until (optional)"><input type="date" value={form.valid_until} onChange={(e) => update("valid_until", e.target.value)} /></Field>
-          <Field label="Delivery days"><input required min="0" type="number" value={form.delivery_days} onChange={(e) => update("delivery_days", e.target.value)} /></Field>
-          <Field label="Delivery terms"><input value={form.delivery_terms} onChange={(e) => update("delivery_terms", e.target.value)} /></Field>
+          <Field label="Quotation number">
+            <input
+              required
+              value={form.quotation_number}
+              onChange={(e) => update("quotation_number", e.target.value)}
+            />
+          </Field>
+          <Field label="Quotation date">
+            <input
+              required
+              type="date"
+              value={form.quotation_date}
+              onChange={(e) => update("quotation_date", e.target.value)}
+            />
+          </Field>
+          <Field label="Valid until (optional)">
+            <input
+              type="date"
+              value={form.valid_until}
+              onChange={(e) => update("valid_until", e.target.value)}
+            />
+          </Field>
+          <Field label="Delivery days">
+            <input
+              required
+              min="0"
+              type="number"
+              value={form.delivery_days}
+              onChange={(e) => update("delivery_days", e.target.value)}
+            />
+          </Field>
+          <Field label="Delivery terms">
+            <input
+              value={form.delivery_terms}
+              onChange={(e) => update("delivery_terms", e.target.value)}
+            />
+          </Field>
         </div>
         {entry.items.map((item, i) => (
           <div className="item-card" key={item.id}>
-            <h3>{item.item_name} <small>{item.quantity} {item.unit}</small></h3>
+            <h3>
+              {item.item_name}{" "}
+              <small>
+                {item.quantity} {item.unit}
+              </small>
+            </h3>
             <div className="grid3">
-              {[["Unit price (INR)", "unit_price"], ["Tax (%)", "tax_percent"], ["Line discount (INR)", "discount"]].map(([label, key]) => (
+              {[
+                ["Unit price (INR)", "unit_price"],
+                ["Tax (%)", "tax_percent"],
+                ["Line discount (INR)", "discount"],
+              ].map(([label, key]) => (
                 <Field key={key} label={label}>
                   <input
                     type="number"
@@ -1547,7 +1829,12 @@ function VendorQuoteForm({ entry, onDone }) {
                     max={key === "tax_percent" ? "100" : undefined}
                     step=".01"
                     value={form.items[i][key]}
-                    onChange={(e) => update("items", form.items.map((x, j) => i === j ? { ...x, [key]: e.target.value } : x))}
+                    onChange={(e) =>
+                      update(
+                        "items",
+                        form.items.map((x, j) => (i === j ? { ...x, [key]: e.target.value } : x)),
+                      )
+                    }
                   />
                 </Field>
               ))}
@@ -1564,15 +1851,36 @@ function Vendors() {
     { data, error, refresh } = useLoad("/api/v1/vendors"),
     [editing, setEditing] = useState(null),
     [show, setShow] = useState(false),
+    [showApplications, setShowApplications] = useState(true),
     [risk, setRisk] = useState(null),
     [riskError, setRiskError] = useState("");
   return (
     <>
       <Header
-        title="Established vendor network"
-        subtitle="Registered suppliers include historical performance evidence. New-vendor onboarding is handled separately from active sourcing."
-      />
+        title="Vendor network"
+        subtitle="Supplier applications are reviewed before onboarding. Approved new suppliers start as provisional until real order history exists."
+      >
+        <RoleAction user={user} roles={["procurement"]}>
+          <div className="actions vendor-header-actions">
+            <button className="secondary" onClick={() => setShowApplications(!showApplications)}>
+              <ShieldCheck size={16} /> {showApplications ? "Hide applications" : "Review applications"}
+            </button>
+            <button
+              className="primary"
+              onClick={() => {
+                setEditing(null);
+                setShow(!show || editing !== null);
+              }}
+            >
+              <Plus size={17} /> {show && !editing ? "Close manual form" : "Add vendor manually"}
+            </button>
+          </div>
+        </RoleAction>
+      </Header>
       <ErrorBox error={error || riskError} />
+      <RoleAction user={user} roles={["procurement"]}>
+        {showApplications && <VendorApplicationsPanel onVendorChanged={refresh} />}
+      </RoleAction>
       {show && (
         <VendorForm
           key={editing?.id}
@@ -1586,22 +1894,60 @@ function Vendors() {
       <section className="panel">
         <div className="table-wrap">
           <table>
-            <thead><tr><th>Vendor</th><th>Contact</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Vendor</th>
+                <th>Contact</th>
+                <th>Lifecycle</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
               {data?.map((v) => (
                 <tr key={v.id}>
-                  <td><strong>{v.name}</strong><small>VEN-{String(v.id).padStart(3, "0")}</small></td>
-                  <td>{v.email}<small>{v.contact}</small></td>
-                  <td><Badge value={v.active ? "ACTIVE" : "INACTIVE"} /></td>
                   <td>
-                    <button className="link" onClick={async () => {
-                      try {
-                        setRisk({ ...(await api("/api/v1/vendors/" + v.id + "/risk")), name: v.name });
-                        setRiskError("");
-                      } catch (e) { setRiskError(e.message); }
-                    }}>View performance</button>
+                    <strong>{v.name}</strong>
+                    <small>VEN-{String(v.id).padStart(3, "0")}</small>
+                  </td>
+                  <td>
+                    {v.email}
+                    <small>{v.contact}</small>
+                  </td>
+                  <td>
+                    <Badge value={v.lifecycle || v.risk?.history_status || "PROVISIONAL"} />
+                    <small>{v.risk?.total_orders ?? 0} observed orders</small>
+                  </td>
+                  <td>
+                    <Badge value={v.active ? "ACTIVE" : "INACTIVE"} />
+                  </td>
+                  <td>
+                    <button
+                      className="link"
+                      onClick={async () => {
+                        try {
+                          setRisk({
+                            ...(await api("/api/v1/vendors/" + v.id + "/risk")),
+                            name: v.name,
+                          });
+                          setRiskError("");
+                        } catch (e) {
+                          setRiskError(e.message);
+                        }
+                      }}
+                    >
+                      View performance
+                    </button>
                     <RoleAction user={user} roles={["procurement"]}>
-                      <button className="link" onClick={() => { setEditing(v); setShow(true); }}>Edit details</button>
+                      <button
+                        className="link"
+                        onClick={() => {
+                          setEditing(v);
+                          setShow(true);
+                        }}
+                      >
+                        Edit details
+                      </button>
                     </RoleAction>
                   </td>
                 </tr>
@@ -1612,22 +1958,51 @@ function Vendors() {
       </section>
       {risk && (
         <section className="panel form-panel">
-          <h2>{risk.name} · historical performance</h2>
+          <h2>{risk.name} · performance profile</h2>
           <Badge value={risk.band} />
           <strong>{risk.score === null ? " Not scored" : " " + risk.score + " / 100"}</strong>
           <p>{risk.reason}</p>
           <div className="risk-summary">
-            <span><b>{risk.total_orders ?? 0}</b><small>Historical orders</small></span>
-            <span><b>{risk.completed_orders ?? 0}</b><small>Completed orders</small></span>
-            <span><b>{risk.coverage_percent ?? 0}%</b><small>Evidence coverage</small></span>
+            <span>
+              <b>{risk.total_orders ?? 0}</b>
+              <small>Historical orders</small>
+            </span>
+            <span>
+              <b>{risk.completed_orders ?? 0}</b>
+              <small>Completed orders</small>
+            </span>
+            <span>
+              <b>{risk.coverage_percent ?? 0}%</b>
+              <small>Evidence coverage</small>
+            </span>
           </div>
-          {risk.band === "NEW_VENDOR" && <p className="notice">New vendor · neutral status. No historical-risk penalty is applied. Procurement should use quotation quality, verification and approval review until at least three orders are recorded.</p>}
+          {risk.band === "NEW_VENDOR" && (
+            <p className="notice">
+              New vendor · neutral status. No historical-risk penalty is applied. Procurement should
+              use quotation quality, verification and approval review until at least three orders
+              are recorded.
+            </p>
+          )}
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Factor</th><th>Observations</th><th>Weight</th><th>Contribution</th></tr></thead>
+              <thead>
+                <tr>
+                  <th>Factor</th>
+                  <th>Observations</th>
+                  <th>Weight</th>
+                  <th>Contribution</th>
+                </tr>
+              </thead>
               <tbody>
                 {risk.factors.map((f) => (
-                  <tr key={f.factor}><td>{human(f.factor)}</td><td>{f.numerator} / {f.denominator}</td><td>{f.weight}%</td><td>{f.contribution ?? "Unknown"}</td></tr>
+                  <tr key={f.factor}>
+                    <td>{human(f.factor)}</td>
+                    <td>
+                      {f.numerator} / {f.denominator}
+                    </td>
+                    <td>{f.weight}%</td>
+                    <td>{risk.score === null ? "Not scored" : (f.contribution ?? "Unknown")}</td>
+                  </tr>
                 ))}
               </tbody>
             </table>
@@ -1645,7 +2020,14 @@ function VendorForm({ vendor, onDone }) {
   );
   return (
     <section className="panel form-panel">
-      <h2>{vendor ? "Edit vendor" : "New vendor"}</h2>
+      <h2>{vendor ? "Edit vendor" : "Register new vendor"}</h2>
+      {!vendor && (
+        <p className="notice">
+          Manual entry is intended for already verified or legacy suppliers. The normal onboarding path is
+          Supplier Application → Procurement Review → Approval. Any newly approved supplier still starts as
+          PROVISIONAL with no artificial historical-risk penalty.
+        </p>
+      )}
       <ActionForm
         label="Save vendor"
         onSubmit={async () => {
@@ -1675,7 +2057,7 @@ function VendorForm({ vendor, onDone }) {
             checked={form.active}
             onChange={(e) => setForm({ ...form, active: e.target.checked })}
           />{" "}
-          Active vendor
+          Active and eligible for RFQs
         </label>
       </ActionForm>
     </section>
@@ -1695,16 +2077,40 @@ function Approvals() {
       {data?.map((req) => (
         <section className="panel approval-inbox-card" key={req.id}>
           <div className="section-head">
-            <div><h2>{req.title}</h2><small>REQ-{String(req.id).padStart(4,"0")} · {req.next_approval?.name}</small></div>
-            <Badge value={req.status}/>
+            <div>
+              <h2>{req.title}</h2>
+              <small>
+                REQ-{String(req.id).padStart(4, "0")} · {req.next_approval?.name}
+                {req.next_approval?.reason ? ` · ${req.next_approval.reason}` : ""}
+              </small>
+            </div>
+            <Badge value={req.status} />
           </div>
           <div className="approval-context-grid">
-            <div><span>Selected vendor</span><strong>{req.preferred_vendor?.name || "—"}</strong></div>
-            <div><span>Quotation total</span><strong>{req.selected_quotation ? cash(req.selected_quotation.grand_total) : "—"}</strong></div>
-            <div><span>Vendor risk</span><strong>{req.preferred_vendor_risk?.band || "—"}</strong></div>
+            <div>
+              <span>Selected vendor</span>
+              <strong>{req.preferred_vendor?.name || "—"}</strong>
+            </div>
+            <div>
+              <span>Quotation total</span>
+              <strong>
+                {req.selected_quotation ? cash(req.selected_quotation.grand_total) : "—"}
+              </strong>
+            </div>
+            <div>
+              <span>Vendor risk</span>
+              <strong>{req.preferred_vendor_risk?.band || "—"}</strong>
+            </div>
           </div>
-          <div className="selection-reason"><small>Procurement selection reasoning</small><p>{req.selection_reason || "No reasoning was recorded."}</p></div>
-          <div className="actions"><Link className="primary" to={"/requisitions/"+req.id}>Review and decide <ArrowUpRight size={16}/></Link></div>
+          <div className="selection-reason">
+            <small>Procurement selection reasoning</small>
+            <p>{req.selection_reason || "No reasoning was recorded."}</p>
+          </div>
+          <div className="actions">
+            <Link className="primary" to={"/requisitions/" + req.id}>
+              Review and decide <ArrowUpRight size={16} />
+            </Link>
+          </div>
         </section>
       ))}
     </>
@@ -1725,6 +2131,24 @@ function PO() {
       invoice_date: new Date().toLocaleDateString("en-CA"),
       amount: "",
     });
+
+  useEffect(() => {
+    if (!data || data.invoice) return;
+
+    const generatedInvoiceNumber = data.po_number
+      ? data.po_number.replace(/^PO-/, "INV-")
+      : "";
+
+    setInvoice((current) => ({
+      invoice_number: current.invoice_number || generatedInvoiceNumber,
+      invoice_date: current.invoice_date || new Date().toLocaleDateString("en-CA"),
+      amount:
+        current.amount !== "" && current.amount !== null && current.amount !== undefined
+          ? current.amount
+          : String(data.total ?? ""),
+    }));
+  }, [data?.po_number, data?.total, data?.invoice]);
+
   if (!data)
     return (
       <>
@@ -1797,14 +2221,23 @@ function PO() {
         <p>
           Delivery within {q.delivery_days} days · {q.delivery_terms}
         </p>
-        <p className="notice">Vendor commitment date: <strong>{promisedDate ? new Date(promisedDate + "T00:00:00").toLocaleDateString() : "—"}</strong></p>
+        <p className="notice">
+          Vendor commitment date:{" "}
+          <strong>
+            {promisedDate ? new Date(promisedDate + "T00:00:00").toLocaleDateString() : "—"}
+          </strong>
+        </p>
       </section>
       <div className="no-print">
         <section className="panel form-panel">
           <h2>Delivery & invoice</h2>
           {data.deliveries.map((d) => (
             <p key={d.id}>
-              <Badge value={d.status} /> Actual receipt: {d.delivered_at}{d.expected_completion_at ? ` · Remaining expected ${d.expected_completion_at}` : ""} · {d.notes}
+              <Badge value={d.status} /> Actual receipt: {d.delivered_at}
+              {d.expected_completion_at
+                ? ` · Remaining expected ${d.expected_completion_at}`
+                : ""}{" "}
+              · {d.notes}
             </p>
           ))}
           <RoleAction user={user} roles={["procurement", "finance_admin"]}>
@@ -1812,19 +2245,37 @@ function PO() {
               <ActionForm
                 label="Record delivery"
                 onSubmit={async () => {
-                  await send("/api/v1/purchase-orders/" + id + "/delivery", delivery);
-                  refresh();
-                }}
+  const payload = {
+    ...delivery,
+    expected_completion_at:
+      delivery.status === "PARTIAL" && delivery.expected_completion_at
+        ? delivery.expected_completion_at
+        : null,
+  };
+
+  await send("/api/v1/purchase-orders/" + id + "/delivery", payload);
+  refresh();
+}}
               >
                 <div className="grid2">
                   <Field label="Delivery status">
-                    <select
+                    <MonoSelect
+                      aria-label="Delivery status"
                       value={delivery.status}
-                      onChange={(e) => setDelivery({ ...delivery, status: e.target.value, expected_completion_at: e.target.value === "PARTIAL" ? (delivery.expected_completion_at || promisedDate || "") : "" })}
+                      onChange={(e) =>
+                        setDelivery({
+                          ...delivery,
+                          status: e.target.value,
+                          expected_completion_at:
+                            e.target.value === "PARTIAL"
+                              ? delivery.expected_completion_at || promisedDate || ""
+                              : "",
+                        })
+                      }
                     >
                       <option>DELIVERED</option>
                       <option>PARTIAL</option>
-                    </select>
+                    </MonoSelect>
                   </Field>
                   <Field label="Actual receipt date">
                     <input
@@ -1838,10 +2289,21 @@ function PO() {
                 </div>
                 {delivery.status === "PARTIAL" && (
                   <Field label="Expected remaining delivery date">
-                    <input type="date" min={delivery.delivered_at} value={delivery.expected_completion_at} onChange={(e) => setDelivery({ ...delivery, expected_completion_at: e.target.value })} />
+                    <input
+                      type="date"
+                      min={delivery.delivered_at}
+                      value={delivery.expected_completion_at}
+                      onChange={(e) =>
+                        setDelivery({ ...delivery, expected_completion_at: e.target.value })
+                      }
+                    />
                   </Field>
                 )}
-                <p className="muted">Use the actual date goods were received. The vendor's promised date is shown above; for a partial receipt, record the expected date for the remaining items separately.</p>
+                <p className="muted">
+                  Use the actual date goods were received. The vendor's promised date is shown
+                  above; for a partial receipt, record the expected date for the remaining items
+                  separately.
+                </p>
                 <Field label="Delivery notes">
                   <textarea
                     required
@@ -1875,11 +2337,22 @@ function PO() {
                         step=".01"
                         type={type}
                         value={invoice[k]}
+                        readOnly={k === "invoice_number"}
+                        title={
+                          k === "invoice_number"
+                            ? "Automatically generated from the purchase order number"
+                            : undefined
+                        }
                         onChange={(e) => setInvoice({ ...invoice, [k]: e.target.value })}
                       />
                     </Field>
                   ))}
                 </div>
+                <p className="muted">
+                  Invoice number is generated automatically from the purchase order. The amount is
+                  pre-filled from the PO total; change the amount only when the supplier invoice
+                  differs so the existing invoice-mismatch check can review the variance.
+                </p>
               </ActionForm>
             )}
           </RoleAction>
@@ -1990,7 +2463,8 @@ function ProfileEditor({ profile, refresh }) {
       </strong>
       <div className="grid2">
         <Field label="Role">
-          <select
+          <MonoSelect
+            aria-label="Role"
             disabled={profile.id === user.id}
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -1998,7 +2472,7 @@ function ProfileEditor({ profile, refresh }) {
             {["requester", "procurement", "approver", "finance_admin"].map((r) => (
               <option key={r}>{r}</option>
             ))}
-          </select>
+          </MonoSelect>
         </Field>
         <label className="checkbox">
           <input

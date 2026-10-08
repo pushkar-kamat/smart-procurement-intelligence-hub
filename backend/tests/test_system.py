@@ -2,7 +2,7 @@ from datetime import date,timedelta
 from decimal import Decimal
 import hashlib
 from sqlalchemy import select,func
-from app.models.entities import Requisition,PurchaseOrder,Document,Profile
+from app.models.entities import Requisition,PurchaseOrder,Document,Profile,VendorHistory
 from app.services.intelligence import calculate_line,analyze_price,vendor_risk,invoice_mismatch
 from app.core.auth import current_user
 from app.main import app
@@ -87,9 +87,8 @@ def test_end_to_end_and_integrity(env):
     assert doc['sha256']==hashlib.sha256(content).hexdigest()
     assert c.get(PREFIX+f"/documents/{doc['id']}").content==content
     ok(c.post(url+'/send-for-approval',json={'vendor_id':1,'comment':'Best total and reliable delivery'}))
-    login('approver');assert ok(c.post(url+'/approval',json={'decision':'APPROVED','comment':'Specifications and budget checked'}))['status']=='PENDING_APPROVAL'
+    login('approver');assert ok(c.post(url+'/approval',json={'decision':'APPROVED','comment':'Specifications and budget checked'}))['status']=='APPROVED'
     assert c.post(url+'/approval',json={'decision':'APPROVED','comment':'Duplicate decision'}).status_code==409
-    login('finance_admin');assert ok(c.post(url+'/approval',json={'decision':'APPROVED','comment':'Senior budget authorization'}))['status']=='APPROVED'
     login('procurement');po=ok(c.post(url+'/purchase-order'),201)
     assert po['total']==122720
     assert c.post(url+'/purchase-order').status_code==409
@@ -260,3 +259,56 @@ def test_file_size_limit(env,monkeypatch):
     from app.core.config import settings
     c,_,_=env;_,_,q,_=prepare(env);monkeypatch.setattr(settings,'max_upload',5)
     assert c.post(PREFIX+f"/quotations/{q['id']}/file",files={'file':('q.pdf',b'%PDF-too-large')}).status_code==413
+
+def test_high_value_requires_finance_escalation(env):
+    c,login,_=env
+    url,_,_,_=prepare(env,price=52000,quantity=4)
+    routed=ok(c.post(url+'/send-for-approval',json={
+        'vendor_id':1,
+        'comment':'Established vendor but high-value purchase',
+    }))
+    assert len(routed['approval_plan'])==2
+    assert routed['approval_plan'][1]['role']=='finance_admin'
+    assert 'finance threshold' in routed['approval_plan'][1]['reason']
+    login('approver')
+    assert ok(c.post(url+'/approval',json={
+        'decision':'APPROVED',
+        'comment':'Purchase need and sourcing evidence checked',
+    }))['status']=='PENDING_APPROVAL'
+    login('finance_admin')
+    assert ok(c.post(url+'/approval',json={
+        'decision':'APPROVED',
+        'comment':'High-value financial authorization completed',
+    }))['status']=='APPROVED'
+
+
+def test_provisional_vendor_requires_finance_even_below_value_threshold(env):
+    c,login,sessions=env
+    url,_,_,_=prepare(env,price=50000,quantity=1)
+    with sessions.begin() as db:
+        history=db.scalar(select(VendorHistory).where(VendorHistory.vendor_id==1))
+        history.total_orders=0
+        history.completed_orders=0
+        history.late_deliveries=0
+        history.disputed_orders=0
+        history.incomplete_orders=0
+        history.invoice_mismatches=0
+        history.invoiced_orders=0
+    routed=ok(c.post(url+'/send-for-approval',json={
+        'vendor_id':1,
+        'comment':'Provisional supplier selected on quotation evidence',
+    }))
+    assert len(routed['approval_plan'])==2
+    assert 'provisional / NEW_VENDOR' in routed['approval_plan'][1]['reason']
+
+
+def test_price_anomaly_requires_finance_even_below_value_threshold(env):
+    c,login,_=env
+    url,_,_,_=prepare(env,price=72000,quantity=1)
+    routed=ok(c.post(url+'/send-for-approval',json={
+        'vendor_id':1,
+        'comment':'Flagged quote retained for explicit human review',
+    }))
+    assert len(routed['approval_plan'])==2
+    assert 'price anomaly' in routed['approval_plan'][1]['reason']
+

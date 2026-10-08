@@ -513,3 +513,1856 @@ th{background:#f3f3f3;color:#656565}th,td{border-color:#e5e5e5}td{color:#444}
 }
 option{background:#fff;color:#111;padding:10px}
 [data-theme="dark"] option{background:#151515;color:#eee}
+
+/* Fully custom monochrome dropdowns: avoids native Windows/Chrome blue menus. */
+.mono-select{position:relative;width:100%;min-width:0}
+.mono-select-proxy{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:0!important;opacity:0!important;pointer-events:none!important}
+.mono-select-trigger{width:100%;min-height:42px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #cfcfcf;border-radius:8px;background:#fff;color:#111;text-align:left;font:inherit;transition:border-color .15s,background .15s,box-shadow .15s}
+.mono-select-trigger:hover{background:#f5f5f5;border-color:#ababab}
+.mono-select.open .mono-select-trigger{border-color:#777;box-shadow:0 0 0 2px rgba(0,0,0,.08)}
+.mono-select-trigger .placeholder{color:#777}
+.mono-select-trigger svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto;transition:transform .15s}
+.mono-select.open .mono-select-trigger svg{transform:rotate(180deg)}
+.mono-select-menu{position:absolute;z-index:80;top:calc(100% + 6px);left:0;right:0;padding:6px;background:#fff;border:1px solid #cfcfcf;border-radius:10px;box-shadow:0 14px 36px rgba(0,0,0,.14);max-height:260px;overflow:auto}
+.mono-select-option{display:block;width:100%;border:0;border-radius:6px;background:transparent;color:#191919;padding:10px 11px;text-align:left;font:inherit;cursor:pointer}
+.mono-select-option:hover,.mono-select-option:focus-visible{background:#ececec;outline:none}
+.mono-select-option.selected{background:#1b1b1b;color:#fff}
+.mono-select-option:disabled{opacity:.45;cursor:not-allowed}
+.mono-select.disabled{opacity:.55;pointer-events:none}
+.filters .mono-select{max-width:210px;flex:0 0 210px}
+[data-theme="dark"] .mono-select-trigger{background:#111;border-color:#3a3a3a;color:#f1f1f1}
+[data-theme="dark"] .mono-select-trigger:hover{background:#171717;border-color:#5b5b5b}
+[data-theme="dark"] .mono-select.open .mono-select-trigger{border-color:#8a8a8a;box-shadow:0 0 0 2px rgba(255,255,255,.08)}
+[data-theme="dark"] .mono-select-trigger .placeholder{color:#8d8d8d}
+[data-theme="dark"] .mono-select-menu{background:#101010;border-color:#3a3a3a;box-shadow:0 18px 42px rgba(0,0,0,.48)}
+[data-theme="dark"] .mono-select-option{color:#dedede}
+[data-theme="dark"] .mono-select-option:hover,[data-theme="dark"] .mono-select-option:focus-visible{background:#242424}
+[data-theme="dark"] .mono-select-option.selected{background:#ededed;color:#111}
+/* === V5 FINTECH NEUTRAL UI PATCH START === */
+/*
+   Visual-only patch.
+   - Replaces pure black/white with graphite, stone and muted metallic neutrals.
+   - Converts the three floating hero cards into one structured evidence strip.
+   - Keeps all routes, authentication, procurement logic and vendor logic untouched.
+*/
+
+:root{
+  --bg:#f2f0ec;
+  --surface:#fbfaf7;
+  --surface-2:#f6f3ee;
+  --surface-3:#ebe7e0;
+  --border:#d8d2c8;
+  --border-strong:#beb5a7;
+  --text:#171817;
+  --text-soft:#4d4c48;
+  --muted-v3:#77736c;
+  --accent:#746a5b;
+  --accent-strong:#514a40;
+  --accent-soft:#e9e3d9;
+  --accent-ink:#211f1b;
+  --success:#66675f;
+  --success-soft:#e7e7df;
+  --danger:#756b63;
+  --danger-soft:#eee8e2;
+  --warning:#81755f;
+  --warning-soft:#eee8dd;
+  --shadow:0 18px 55px rgba(38,34,28,.07);
+}
+
+body,.shell main{background:var(--bg);color:var(--text)}
+.shell aside,.topbar{background:#f8f6f2;border-color:var(--border)}
+.brand{color:#171817}
+.brand-icon{background:#202322;color:#f8f5ef;border-color:#202322}
+.brand-dot{color:#8a7b65}
+.nav-label{color:#878177}
+.shell nav a{color:#65625c}
+.shell nav a.active{background:#e9e5de;color:#1c1d1c;border-color:#d6d0c6}
+.shell nav a:hover{background:#eeebe5;color:#171817}
+.workspace-meta,.user{border-color:var(--border);color:#46433e}
+.avatar{background:#e4dfd7;color:#39352f}
+.topbar,.muted,small{color:#77736c}
+.live-dot:before{background:#8d816e}
+.eyebrow{color:#766d60}
+.panel,.stat,.auth-card{background:var(--surface);border-color:var(--border)}
+.callout{background:#ebe6dd;border-color:#d8d0c4;color:#38332d}
+.callout p:last-child{color:#746e65}.callout>svg{color:#7e7363}
+.primary{background:#242725;color:#f7f4ee;border-color:#242725}
+.primary:hover{background:#343836}
+.secondary{background:#f9f7f3;border-color:#cec7bc;color:#48433d}
+.secondary:hover{background:#ece8e1}
+.link{color:#5c554b}.link:hover{background:#e8e3dc}
+.field>span{color:#625d55}
+input,textarea,select{background:#fbfaf7;border-color:#cec8be;color:#20211f}
+input::placeholder,textarea::placeholder{color:#9a958c}
+input:focus,textarea:focus,select:focus{outline-color:#938673}
+.theme-toggle{border-color:#c9c2b7;color:#555047;background:#f9f7f3}
+.theme-toggle:hover,.icon-button:hover{background:#e9e4dc}
+.badge,.badge.good,.badge.danger,.badge.info{background:#e9e5de;color:#47433d;border-color:#d3ccc1}
+
+/* Fintech authentication canvas */
+.auth-portal{
+  min-height:100vh;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 8% 12%,rgba(137,122,99,.12),transparent 30%),
+    radial-gradient(circle at 88% 18%,rgba(93,97,94,.06),transparent 25%),
+    linear-gradient(145deg,#f6f4f0 0%,#eeece7 56%,#f8f7f3 100%);
+}
+.auth-grid-bg{
+  opacity:.34;
+  background-image:
+    linear-gradient(rgba(74,68,59,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(74,68,59,.045) 1px,transparent 1px);
+  background-size:52px 52px;
+}
+.auth-orb-one,.vendor-auth .auth-orb-one{
+  width:520px;height:520px;right:-210px;top:11%;
+  background:radial-gradient(circle,rgba(139,123,98,.11),rgba(139,123,98,0) 68%);
+}
+.auth-orb-two{
+  width:360px;height:360px;left:36%;bottom:-180px;
+  background:radial-gradient(circle,rgba(70,75,72,.06),rgba(70,75,72,0) 68%);
+}
+.auth-topline{padding-top:30px}
+.auth-stage{
+  width:min(1420px,calc(100% - 56px));
+  grid-template-columns:minmax(0,1.15fr) minmax(390px,.72fr);
+  gap:clamp(54px,7vw,112px);
+  padding:38px 0 68px;
+}
+.auth-hero{max-width:790px}
+.portal-kicker{
+  border-color:#cbc2b5;
+  background:rgba(250,248,244,.7);
+  color:#62594d;
+  box-shadow:0 8px 30px rgba(55,48,39,.04);
+}
+.portal-pulse{background:#82745f;box-shadow:0 0 0 5px rgba(130,116,95,.11)}
+@keyframes portalPulse{0%,100%{box-shadow:0 0 0 4px rgba(130,116,95,.11)}50%{box-shadow:0 0 0 9px rgba(130,116,95,0)}}
+.auth-hero .eyebrow{color:#817868;letter-spacing:1.9px}
+.auth-hero h1{
+  color:#151716;
+  max-width:780px;
+  font-size:clamp(48px,5.25vw,74px);
+  line-height:1.015;
+  letter-spacing:-3.7px;
+}
+.auth-hero-copy{color:#66635d;max-width:640px;margin:24px 0 30px}
+
+/* Clean one-piece evidence strip instead of three floating cards. */
+.auth-signals{
+  position:relative;
+  display:grid;
+  grid-template-columns:1.35fr 1fr 1fr;
+  min-height:0;
+  max-width:740px;
+  margin:30px 0 12px;
+  border:1px solid rgba(125,113,95,.25);
+  border-radius:18px;
+  overflow:hidden;
+  background:rgba(250,248,244,.64);
+  backdrop-filter:blur(18px);
+  box-shadow:0 18px 56px rgba(52,46,37,.06);
+}
+.signal-card,
+.signal-card-main,
+.signal-card-float,
+.signal-card-mini{
+  position:relative!important;
+  inset:auto!important;
+  left:auto!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:auto!important;
+  width:auto!important;
+  min-width:0;
+  min-height:132px;
+  border:0;
+  border-right:1px solid rgba(125,113,95,.18);
+  border-radius:0;
+  padding:19px 20px 18px;
+  background:transparent;
+  box-shadow:none;
+  backdrop-filter:none;
+  animation:none!important;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:6px;
+}
+.signal-card:last-child{border-right:0}
+.signal-card:after{
+  content:"";
+  position:absolute;
+  left:20px;right:20px;bottom:0;height:2px;
+  background:linear-gradient(90deg,#95866f,rgba(149,134,111,0));
+  opacity:.42;
+}
+.signal-card small{color:#82796b;font-size:9px;letter-spacing:1.35px;margin-bottom:3px}
+.signal-card strong{color:#252622;font-size:16px;letter-spacing:-.3px}
+.signal-card span{color:#77726a;font-size:11px;line-height:1.5}
+.signal-dot{width:7px;height:7px;background:#8c806e;margin-bottom:4px;box-shadow:0 0 0 5px rgba(140,128,110,.08)}
+
+.auth-panel{
+  background:linear-gradient(180deg,rgba(252,250,246,.92),rgba(247,244,239,.88));
+  border-color:rgba(128,116,98,.28);
+  border-radius:24px;
+  box-shadow:0 34px 90px rgba(48,42,34,.11);
+}
+.auth-panel:before{
+  height:1px;
+  background:linear-gradient(90deg,transparent,#9b8d76,transparent);
+  opacity:.72;
+}
+.auth-panel-mark,.vendor-auth .auth-panel-mark{
+  background:linear-gradient(145deg,#272a28,#454945);
+  color:#f4eee4;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+.auth-panel .primary{
+  background:linear-gradient(180deg,#292c2a,#1f2220);
+  color:#f8f6f1;
+  border-color:#292c2a;
+  box-shadow:0 8px 24px rgba(31,34,32,.10);
+}
+.auth-panel .primary:hover{background:linear-gradient(180deg,#3a3e3b,#292c2a)}
+.vendor-access-note{background:#f0ede7;border-color:#cfc7bb;color:#6f6960}
+.portal-switch.auth-switch{border-top-color:#d8d1c7}
+.portal-switch{color:#777168}
+.portal-switch-link{color:#3e3932;background:#f7f4ef;border-color:#ccc4b8}
+.portal-switch-link:hover{background:#eae5dd}
+.auth-footer{color:#817c74}
+
+/* Dark theme: graphite + muted platinum/champagne, not pure black/white. */
+[data-theme="dark"]{
+  --bg:#0d0f0f;
+  --surface:#151817;
+  --surface-2:#1b1e1d;
+  --surface-3:#222523;
+  --border:#2d312f;
+  --border-strong:#414640;
+  --text:#f2efe9;
+  --text-soft:#c9c5bd;
+  --muted-v3:#95918a;
+  --accent:#c3b69f;
+  --accent-strong:#ddd1bd;
+  --accent-soft:#28241f;
+  --accent-ink:#f5efe5;
+  --success:#aaa79f;
+  --success-soft:#252724;
+  --danger:#b4aaa1;
+  --danger-soft:#292522;
+  --warning:#c2b69f;
+  --warning-soft:#2b2721;
+  --shadow:0 24px 75px rgba(0,0,0,.34);
+}
+[data-theme="dark"] body,[data-theme="dark"] .shell main{background:#0d0f0f;color:#f2efe9}
+[data-theme="dark"] .shell aside,[data-theme="dark"] .topbar{background:#111413;border-color:#2c302e}
+[data-theme="dark"] .brand{color:#f2efe9}
+[data-theme="dark"] .brand-icon{background:#e2dbcf;color:#171918;border-color:#e2dbcf}
+[data-theme="dark"] .brand-dot{color:#aa9a81}
+[data-theme="dark"] .nav-label,[data-theme="dark"] small,[data-theme="dark"] .muted,[data-theme="dark"] .topbar{color:#908c85}
+[data-theme="dark"] .shell nav a{color:#aaa69f}
+[data-theme="dark"] .shell nav a.active{background:#202321;color:#f4f1eb;border-color:#353a36}
+[data-theme="dark"] .shell nav a:hover{background:#1a1d1c;color:#f5f2ec}
+[data-theme="dark"] .workspace-meta,[data-theme="dark"] .user{border-color:#2d312f;color:#d2cec6}
+[data-theme="dark"] .avatar{background:#272a28;color:#e7e1d7}
+[data-theme="dark"] .live-dot:before{background:#ad9e86}
+[data-theme="dark"] .eyebrow{color:#aaa08f}
+[data-theme="dark"] .panel,[data-theme="dark"] .stat,[data-theme="dark"] .auth-card{background:#151817;border-color:#2d312f}
+[data-theme="dark"] .callout{background:#1a1c1a;border-color:#30342f;color:#ded9cf}
+[data-theme="dark"] .callout p:last-child{color:#98938b}[data-theme="dark"] .callout>svg{color:#aaa08f}
+[data-theme="dark"] input,[data-theme="dark"] textarea,[data-theme="dark"] select{background-color:#121514;border-color:#383d39;color:#eeeae3}
+[data-theme="dark"] input::placeholder,[data-theme="dark"] textarea::placeholder{color:#686b67}
+[data-theme="dark"] input:focus,[data-theme="dark"] textarea:focus,[data-theme="dark"] select:focus{outline-color:#827865}
+[data-theme="dark"] .field>span{color:#aaa49a}
+[data-theme="dark"] th{background:#1a1d1b;color:#99958e}[data-theme="dark"] th,[data-theme="dark"] td{border-color:#2a2e2b}[data-theme="dark"] td{color:#cbc6bd}
+[data-theme="dark"] .item-card,[data-theme="dark"] .approval-record,[data-theme="dark"] .decision-card{background:#1a1d1b;border-color:#30342f}
+[data-theme="dark"] .primary{background:#e1dacd;color:#171918;border-color:#e1dacd}
+[data-theme="dark"] .primary:hover{background:#cfc4b1}
+[data-theme="dark"] .secondary{background:#181b19;border-color:#3c413d;color:#d7d2ca}
+[data-theme="dark"] .secondary:hover{background:#222624}
+[data-theme="dark"] .theme-toggle{border-color:#3b403c;color:#ccc6bc;background:#171a18}
+[data-theme="dark"] .theme-toggle:hover,[data-theme="dark"] .icon-button:hover{background:#222624}
+[data-theme="dark"] .badge,[data-theme="dark"] .badge.good,[data-theme="dark"] .badge.danger,[data-theme="dark"] .badge.info{background:#252825;color:#d8d2c8;border-color:#3b403b}
+
+[data-theme="dark"] .auth-portal{
+  background:
+    radial-gradient(circle at 9% 15%,rgba(191,174,145,.11),transparent 31%),
+    radial-gradient(circle at 84% 16%,rgba(133,137,132,.045),transparent 27%),
+    linear-gradient(145deg,#0c0e0e 0%,#121514 55%,#0b0d0d 100%);
+}
+[data-theme="dark"] .auth-grid-bg{
+  opacity:.30;
+  background-image:
+    linear-gradient(rgba(221,210,191,.027) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(221,210,191,.027) 1px,transparent 1px);
+}
+[data-theme="dark"] .auth-orb-one,[data-theme="dark"] .vendor-auth .auth-orb-one{
+  background:radial-gradient(circle,rgba(190,171,140,.09),rgba(190,171,140,0) 68%);
+}
+[data-theme="dark"] .auth-orb-two{background:radial-gradient(circle,rgba(170,177,171,.04),rgba(170,177,171,0) 68%)}
+[data-theme="dark"] .portal-kicker{background:rgba(22,25,24,.72);border-color:#3d3c37;color:#c8bca8}
+[data-theme="dark"] .portal-pulse{background:#c7b99f}
+[data-theme="dark"] .auth-hero .eyebrow{color:#9f9688}
+[data-theme="dark"] .auth-hero h1{color:#f1eee8}
+[data-theme="dark"] .auth-hero-copy{color:#9b9891}
+[data-theme="dark"] .auth-signals{
+  background:rgba(20,23,22,.72);
+  border-color:rgba(196,179,150,.18);
+  box-shadow:0 22px 70px rgba(0,0,0,.28);
+}
+[data-theme="dark"] .signal-card,[data-theme="dark"] .signal-card-main,[data-theme="dark"] .signal-card-float,[data-theme="dark"] .signal-card-mini{
+  border-right-color:rgba(196,179,150,.13);
+}
+[data-theme="dark"] .signal-card:after{background:linear-gradient(90deg,#b4a589,rgba(180,165,137,0));opacity:.34}
+[data-theme="dark"] .signal-card small{color:#9e9484}
+[data-theme="dark"] .signal-card strong{color:#ece8e0}
+[data-theme="dark"] .signal-card span{color:#929089}
+[data-theme="dark"] .signal-dot{background:#b9ad97;box-shadow:0 0 0 5px rgba(185,173,151,.06)}
+[data-theme="dark"] .auth-panel{
+  background:linear-gradient(180deg,rgba(22,25,24,.92),rgba(17,20,19,.90));
+  border-color:rgba(197,180,151,.17);
+  box-shadow:0 34px 100px rgba(0,0,0,.34);
+}
+[data-theme="dark"] .auth-panel:before{background:linear-gradient(90deg,transparent,#b9aa91,transparent);opacity:.46}
+[data-theme="dark"] .auth-panel-mark,[data-theme="dark"] .vendor-auth .auth-panel-mark{background:linear-gradient(145deg,#e0d8ca,#bfb19a);color:#181a19}
+[data-theme="dark"] .auth-panel .primary{background:linear-gradient(180deg,#e8e1d5,#cbbda5);color:#171918;border-color:#d8cdbb}
+[data-theme="dark"] .auth-panel .primary:hover{background:linear-gradient(180deg,#f1eadf,#d8cbb6)}
+[data-theme="dark"] .vendor-access-note{background:#1a1d1b;border-color:#3b403b;color:#959189}
+[data-theme="dark"] .portal-switch.auth-switch{border-top-color:#303430}
+[data-theme="dark"] .portal-switch{color:#8f8b84}
+[data-theme="dark"] .portal-switch-link{color:#ded6c9;background:#181b19;border-color:#3b403b}
+[data-theme="dark"] .portal-switch-link:hover{background:#232724}
+[data-theme="dark"] .auth-footer{color:#6f716d}
+
+@media(max-width:1000px){
+  .auth-stage{grid-template-columns:1fr;width:min(780px,calc(100% - 36px));gap:38px}
+  .auth-signals{max-width:740px}
+  .auth-panel-wrap{justify-content:flex-start}
+}
+@media(max-width:700px){
+  .auth-stage{width:calc(100% - 28px)}
+  .auth-hero h1{font-size:42px;letter-spacing:-2.4px}
+  .auth-signals{grid-template-columns:1fr;border-radius:15px}
+  .signal-card,.signal-card-main,.signal-card-float,.signal-card-mini{
+    min-height:auto;
+    border-right:0;
+    border-bottom:1px solid rgba(125,113,95,.18);
+    padding:17px 18px;
+  }
+  .signal-card:last-child{border-bottom:0}
+  [data-theme="dark"] .signal-card,[data-theme="dark"] .signal-card-main,[data-theme="dark"] .signal-card-float,[data-theme="dark"] .signal-card-mini{
+    border-bottom-color:rgba(196,179,150,.13);
+  }
+}
+/* === V5 FINTECH NEUTRAL UI PATCH END === */
+
+
+/* === V5.1 FINTECH PALETTE REFINEMENT START === */
+/*
+  Visual-only refinement for the existing V5 UI.
+  Goals:
+  - Remove the yellow/champagne and bluish cast.
+  - Keep the existing V5 layout and component structure.
+  - Give light mode more depth and a stronger fintech feel.
+  Palette: graphite, pewter, smoke, silver, soft neutral grey.
+*/
+
+/* ---------- LIGHT MODE ---------- */
+:root{
+  --bg:#e9eaeb;
+  --surface:#f7f7f6;
+  --surface-2:#eff0f0;
+  --surface-3:#e3e5e5;
+  --border:#c9cccd;
+  --border-strong:#aeb2b3;
+  --text:#17191a;
+  --text-soft:#474b4d;
+  --muted-v3:#74797b;
+  --accent:#62686a;
+  --accent-strong:#3f4547;
+  --accent-soft:#dde0e1;
+  --accent-ink:#1d2021;
+  --success:#656b69;
+  --success-soft:#e2e5e3;
+  --danger:#756e6e;
+  --danger-soft:#ebe6e6;
+  --warning:#74716a;
+  --warning-soft:#e9e7e2;
+  --shadow:0 20px 58px rgba(27,30,31,.09);
+}
+
+body,
+.shell main{
+  background:
+    radial-gradient(circle at 14% 8%,rgba(255,255,255,.72),transparent 34%),
+    linear-gradient(145deg,#e8e9ea 0%,#f0f1f1 54%,#e5e7e7 100%);
+  color:var(--text);
+}
+
+.shell aside,
+.topbar{
+  background:rgba(247,247,246,.93);
+  border-color:#c9cccd;
+  box-shadow:0 1px 0 rgba(255,255,255,.72);
+}
+
+.brand{color:#17191a}
+.brand-icon{
+  background:linear-gradient(145deg,#25292a,#111314);
+  color:#f5f5f3;
+  border-color:#25292a;
+}
+.brand-dot{color:#6c7274}
+
+.nav-label{color:#83888a}
+.shell nav a{color:#5f6466}
+.shell nav a.active{
+  background:linear-gradient(180deg,#e2e4e4,#d8dbdc);
+  color:#181b1c;
+  border-color:#c6cacc;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.72);
+}
+.shell nav a:hover{background:#e3e5e5;color:#17191a}
+
+.workspace-meta,
+.user{border-color:#c9cccd;color:#414647}
+.avatar{background:#dde0e1;color:#303436}
+.topbar,
+.muted,
+small{color:#73787a}
+.live-dot:before{background:#6e7476}
+.eyebrow{color:#676d6f}
+
+.panel,
+.stat,
+.auth-card{
+  background:linear-gradient(180deg,rgba(249,249,248,.97),rgba(241,242,242,.97));
+  border-color:#c8cccd;
+  box-shadow:
+    0 18px 48px rgba(26,30,31,.075),
+    inset 0 1px 0 rgba(255,255,255,.78);
+}
+
+.callout{
+  background:linear-gradient(180deg,#eceeee,#e4e6e6);
+  border-color:#c9cdce;
+  color:#34393a;
+}
+.callout p:last-child{color:#666c6e}
+.callout>svg{color:#697073}
+
+.primary{
+  background:linear-gradient(180deg,#272c2d,#171a1b);
+  color:#f5f5f3;
+  border-color:#272c2d;
+  box-shadow:0 8px 22px rgba(22,25,26,.13);
+}
+.primary:hover{background:linear-gradient(180deg,#353b3c,#232728)}
+
+.secondary{
+  background:linear-gradient(180deg,#fafafa,#eceeee);
+  border-color:#c6cacb;
+  color:#3d4345;
+}
+.secondary:hover{background:#e2e5e5}
+.link{color:#505759}
+.link:hover{background:#e1e4e4}
+
+.field>span{color:#5c6264}
+input,
+textarea,
+select{
+  background:#f9f9f8;
+  border-color:#c4c9ca;
+  color:#1e2122;
+  box-shadow:inset 0 1px 2px rgba(25,29,30,.025);
+}
+input::placeholder,
+textarea::placeholder{color:#94999a}
+input:focus,
+textarea:focus,
+select:focus{
+  outline-color:#737a7c;
+  border-color:#8f9698;
+}
+
+.theme-toggle{
+  border-color:#c4c9ca;
+  color:#505658;
+  background:#f7f7f6;
+}
+.theme-toggle:hover,
+.icon-button:hover{background:#e1e4e4}
+
+.badge,
+.badge.good,
+.badge.danger,
+.badge.info{
+  background:#e1e4e4;
+  color:#42484a;
+  border-color:#c5cacc;
+}
+
+/* Fintech light-mode authentication canvas with more depth. */
+.auth-portal{
+  background:
+    radial-gradient(circle at 7% 11%,rgba(255,255,255,.78),transparent 31%),
+    radial-gradient(circle at 91% 16%,rgba(72,79,81,.055),transparent 27%),
+    linear-gradient(145deg,#e4e6e6 0%,#eef0f0 53%,#e1e4e4 100%);
+}
+
+.auth-grid-bg{
+  opacity:.36;
+  background-image:
+    linear-gradient(rgba(48,54,56,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(48,54,56,.045) 1px,transparent 1px);
+}
+
+.auth-orb-one,
+.vendor-auth .auth-orb-one{
+  background:radial-gradient(circle,rgba(72,79,81,.095),rgba(72,79,81,0) 68%);
+}
+.auth-orb-two{
+  background:radial-gradient(circle,rgba(41,47,49,.055),rgba(41,47,49,0) 68%);
+}
+
+.portal-kicker{
+  border-color:#c2c7c8;
+  background:rgba(246,247,247,.77);
+  color:#51585a;
+  box-shadow:
+    0 10px 30px rgba(28,32,33,.055),
+    inset 0 1px 0 rgba(255,255,255,.75);
+}
+.portal-pulse{
+  background:#656c6e;
+  box-shadow:0 0 0 5px rgba(101,108,110,.095);
+}
+@keyframes portalPulse{
+  0%,100%{box-shadow:0 0 0 4px rgba(101,108,110,.10)}
+  50%{box-shadow:0 0 0 9px rgba(101,108,110,0)}
+}
+
+.auth-hero .eyebrow{color:#6d7476}
+.auth-hero h1{color:#17191a}
+.auth-hero-copy{color:#616769}
+
+.auth-signals{
+  background:linear-gradient(180deg,rgba(248,249,249,.83),rgba(232,235,235,.83));
+  border-color:rgba(92,99,101,.25);
+  box-shadow:
+    0 20px 58px rgba(25,29,30,.085),
+    inset 0 1px 0 rgba(255,255,255,.68);
+}
+
+.signal-card,
+.signal-card-main,
+.signal-card-float,
+.signal-card-mini{
+  border-right-color:rgba(91,98,100,.18);
+}
+
+.signal-card:after{
+  background:linear-gradient(90deg,#6b7274,rgba(107,114,116,0));
+  opacity:.32;
+}
+.signal-card small{color:#717779}
+.signal-card strong{color:#222627}
+.signal-card span{color:#676d6f}
+.signal-dot{
+  background:#697174;
+  box-shadow:0 0 0 5px rgba(105,113,116,.075);
+}
+
+.auth-panel{
+  background:
+    linear-gradient(180deg,rgba(250,250,249,.95),rgba(235,237,237,.94));
+  border-color:rgba(84,91,93,.24);
+  box-shadow:
+    0 34px 90px rgba(25,29,30,.13),
+    inset 0 1px 0 rgba(255,255,255,.76);
+}
+.auth-panel:before{
+  background:linear-gradient(90deg,transparent,#737a7c,transparent);
+  opacity:.50;
+}
+.auth-panel-mark,
+.vendor-auth .auth-panel-mark{
+  background:linear-gradient(145deg,#343a3b,#16191a);
+  color:#f4f4f2;
+}
+.auth-panel .primary{
+  background:linear-gradient(180deg,#2d3233,#171a1b);
+  color:#f7f7f5;
+  border-color:#2d3233;
+}
+.auth-panel .primary:hover{
+  background:linear-gradient(180deg,#3d4445,#242829);
+}
+
+.vendor-access-note{
+  background:#e8eaea;
+  border-color:#c6cacc;
+  color:#606668;
+}
+.portal-switch.auth-switch{border-top-color:#cdd1d2}
+.portal-switch{color:#6d7375}
+.portal-switch-link{
+  color:#343a3c;
+  background:#f2f3f3;
+  border-color:#c5cacc;
+}
+.portal-switch-link:hover{background:#e1e4e4}
+.auth-footer{color:#747a7c}
+
+
+/* ---------- DARK MODE ---------- */
+[data-theme="dark"]{
+  --bg:#0c0e0f;
+  --surface:#151819;
+  --surface-2:#1b1f20;
+  --surface-3:#232728;
+  --border:#2e3335;
+  --border-strong:#444a4c;
+  --text:#f0f1ef;
+  --text-soft:#c6c9c8;
+  --muted-v3:#919697;
+  --accent:#aeb3b4;
+  --accent-strong:#d0d3d3;
+  --accent-soft:#242829;
+  --accent-ink:#f3f4f2;
+  --success:#a2a6a4;
+  --success-soft:#252928;
+  --danger:#b0a9a9;
+  --danger-soft:#292526;
+  --warning:#aaa79f;
+  --warning-soft:#292824;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] .shell main{
+  background:#0c0e0f;
+  color:#f0f1ef;
+}
+
+[data-theme="dark"] .brand-icon{
+  background:linear-gradient(145deg,#e5e6e3,#aeb3b4);
+  color:#171a1b;
+  border-color:#d4d6d4;
+}
+[data-theme="dark"] .brand-dot{color:#9ea4a5}
+[data-theme="dark"] .live-dot:before{background:#9da4a5}
+[data-theme="dark"] .eyebrow{color:#a0a5a6}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus{outline-color:#72797b}
+
+[data-theme="dark"] .auth-portal{
+  background:
+    radial-gradient(circle at 8% 14%,rgba(174,180,181,.07),transparent 31%),
+    radial-gradient(circle at 86% 17%,rgba(112,119,121,.035),transparent 28%),
+    linear-gradient(145deg,#0b0d0e 0%,#111415 55%,#0a0c0d 100%);
+}
+
+[data-theme="dark"] .auth-grid-bg{
+  opacity:.30;
+  background-image:
+    linear-gradient(rgba(202,207,208,.024) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(202,207,208,.024) 1px,transparent 1px);
+}
+
+[data-theme="dark"] .auth-orb-one,
+[data-theme="dark"] .vendor-auth .auth-orb-one{
+  background:radial-gradient(circle,rgba(176,181,182,.065),rgba(176,181,182,0) 68%);
+}
+[data-theme="dark"] .auth-orb-two{
+  background:radial-gradient(circle,rgba(118,124,126,.035),rgba(118,124,126,0) 68%);
+}
+
+[data-theme="dark"] .portal-kicker{
+  background:rgba(21,24,25,.74);
+  border-color:#3b4042;
+  color:#bcc1c2;
+}
+[data-theme="dark"] .portal-pulse{background:#aab0b1}
+[data-theme="dark"] .auth-hero .eyebrow{color:#93999a}
+[data-theme="dark"] .auth-hero h1{color:#f0f1ef}
+[data-theme="dark"] .auth-hero-copy{color:#999e9f}
+
+[data-theme="dark"] .auth-signals{
+  background:rgba(19,22,23,.74);
+  border-color:rgba(179,185,186,.17);
+  box-shadow:0 22px 70px rgba(0,0,0,.30);
+}
+[data-theme="dark"] .signal-card,
+[data-theme="dark"] .signal-card-main,
+[data-theme="dark"] .signal-card-float,
+[data-theme="dark"] .signal-card-mini{
+  border-right-color:rgba(179,185,186,.12);
+}
+[data-theme="dark"] .signal-card:after{
+  background:linear-gradient(90deg,#949b9d,rgba(148,155,157,0));
+  opacity:.30;
+}
+[data-theme="dark"] .signal-card small{color:#8f9597}
+[data-theme="dark"] .signal-card strong{color:#ebedeb}
+[data-theme="dark"] .signal-card span{color:#909596}
+[data-theme="dark"] .signal-dot{
+  background:#a1a7a8;
+  box-shadow:0 0 0 5px rgba(161,167,168,.055);
+}
+
+[data-theme="dark"] .auth-panel{
+  background:linear-gradient(180deg,rgba(22,25,26,.94),rgba(16,19,20,.92));
+  border-color:rgba(179,185,186,.16);
+  box-shadow:0 34px 100px rgba(0,0,0,.36);
+}
+[data-theme="dark"] .auth-panel:before{
+  background:linear-gradient(90deg,transparent,#8f9698,transparent);
+  opacity:.40;
+}
+[data-theme="dark"] .auth-panel-mark,
+[data-theme="dark"] .vendor-auth .auth-panel-mark{
+  background:linear-gradient(145deg,#dde0de,#a9afb0);
+  color:#171a1b;
+}
+[data-theme="dark"] .auth-panel .primary{
+  background:linear-gradient(180deg,#e1e4e2,#b8bdbe);
+  color:#171a1b;
+  border-color:#cdd1d0;
+}
+[data-theme="dark"] .auth-panel .primary:hover{
+  background:linear-gradient(180deg,#f0f1ef,#c8cdcd);
+}
+
+[data-theme="dark"] .vendor-access-note{
+  background:#1a1e1f;
+  border-color:#3b4142;
+  color:#949a9b;
+}
+[data-theme="dark"] .portal-switch.auth-switch{border-top-color:#303536}
+[data-theme="dark"] .portal-switch{color:#8e9495}
+[data-theme="dark"] .portal-switch-link{
+  color:#d7d9d8;
+  background:#171a1b;
+  border-color:#3a4041;
+}
+[data-theme="dark"] .portal-switch-link:hover{background:#222728}
+[data-theme="dark"] .auth-footer{color:#6e7475}
+
+/* === V5.1 FINTECH PALETTE REFINEMENT END === */
+
+
+/* === V5.4 PURE NEUTRAL DASHBOARD START === */
+/*
+  AUTHENTICATED APP ONLY.
+  Login / vendor-login styling is intentionally untouched.
+
+  Palette rule:
+  - grayscale only (no green, blue, yellow, beige tint)
+  - dark mode = black / charcoal / silver
+  - light mode = soft silver canvas + white cards + dark navigation
+*/
+
+/* ---------- SHARED APP DETAILS ---------- */
+.shell{
+  --n-black:#101010;
+  --n-black-2:#151515;
+  --n-black-3:#1c1c1c;
+  --n-dark:#242424;
+  --n-border-dark:#303030;
+  --n-silver:#c9c9c9;
+  --n-muted:#8b8b8b;
+  --n-offwhite:#f4f4f4;
+  --n-canvas:#eeeeee;
+  --n-card:#fafafa;
+  --n-line:#d4d4d4;
+}
+
+.shell .eyebrow{
+  color:#9a9a9a!important;
+}
+.shell .live-dot:before{
+  background:#a4a4a4!important;
+}
+.shell .brand-dot{
+  color:#8f8f8f!important;
+}
+.shell .badge,
+.shell .badge.good,
+.shell .badge.info,
+.shell .badge.danger{
+  border-radius:999px!important;
+}
+.shell .panel,
+.shell .stat,
+.shell .callout{
+  transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.shell .stat:hover,
+.shell .panel:hover{
+  border-color:#bdbdbd!important;
+}
+
+/* ---------- DARK MODE ---------- */
+[data-theme="dark"] .shell{
+  background:#0d0d0d!important;
+  color:#f1f1f1!important;
+}
+
+[data-theme="dark"] .shell main{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(255,255,255,.028),transparent 25%),
+    linear-gradient(145deg,#0d0d0d 0%,#111111 54%,#0c0c0c 100%)!important;
+  color:#f1f1f1!important;
+}
+
+[data-theme="dark"] .shell aside{
+  background:linear-gradient(180deg,#0b0b0b 0%,#101010 100%)!important;
+  border-right:1px solid #292929!important;
+}
+
+[data-theme="dark"] .topbar{
+  background:rgba(14,14,14,.95)!important;
+  border-bottom:1px solid #292929!important;
+  color:#8f8f8f!important;
+  backdrop-filter:blur(16px);
+}
+
+[data-theme="dark"] .brand{
+  color:#f3f3f3!important;
+}
+[data-theme="dark"] .brand-icon{
+  background:linear-gradient(145deg,#ededed,#bdbdbd)!important;
+  border:1px solid #d0d0d0!important;
+  color:#111111!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.24)!important;
+}
+
+[data-theme="dark"] .nav-label{
+  color:#666666!important;
+}
+[data-theme="dark"] .shell nav a{
+  color:#a9a9a9!important;
+}
+[data-theme="dark"] .shell nav a:hover{
+  color:#f4f4f4!important;
+  background:#171717!important;
+}
+[data-theme="dark"] .shell nav a.active{
+  color:#f6f6f6!important;
+  background:linear-gradient(180deg,#202020,#1a1a1a)!important;
+  border:1px solid #343434!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+[data-theme="dark"] .workspace-meta,
+[data-theme="dark"] .user{
+  border-color:#292929!important;
+  color:#c4c4c4!important;
+}
+[data-theme="dark"] .avatar{
+  background:#232323!important;
+  color:#e9e9e9!important;
+}
+
+[data-theme="dark"] .muted,
+[data-theme="dark"] small{
+  color:#8f8f8f!important;
+}
+
+[data-theme="dark"] .panel,
+[data-theme="dark"] .stat,
+[data-theme="dark"] .auth-card,
+[data-theme="dark"] .item-card,
+[data-theme="dark"] .approval-record,
+[data-theme="dark"] .decision-card{
+  background:linear-gradient(180deg,#151515 0%,#121212 100%)!important;
+  border:1px solid #303030!important;
+  box-shadow:
+    0 16px 44px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.018)!important;
+}
+
+[data-theme="dark"] .stat:hover,
+[data-theme="dark"] .panel:hover{
+  border-color:#414141!important;
+}
+
+[data-theme="dark"] .stat p,
+[data-theme="dark"] td,
+[data-theme="dark"] .field>span{
+  color:#929292!important;
+}
+[data-theme="dark"] .stat strong,
+[data-theme="dark"] .row-title{
+  color:#f0f0f0!important;
+}
+
+[data-theme="dark"] .callout{
+  background:
+    linear-gradient(135deg,#191919 0%,#141414 60%,#171717 100%)!important;
+  border:1px solid #343434!important;
+  color:#f0f0f0!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.018),
+    0 14px 38px rgba(0,0,0,.16)!important;
+}
+[data-theme="dark"] .callout p:last-child,
+[data-theme="dark"] .callout>svg{
+  color:#999999!important;
+}
+
+[data-theme="dark"] .primary{
+  background:linear-gradient(180deg,#f1f1f1,#d5d5d5)!important;
+  border-color:#dedede!important;
+  color:#111111!important;
+  box-shadow:0 7px 20px rgba(0,0,0,.22)!important;
+}
+[data-theme="dark"] .primary:hover{
+  background:linear-gradient(180deg,#ffffff,#e0e0e0)!important;
+}
+
+[data-theme="dark"] .secondary{
+  background:#191919!important;
+  border-color:#3a3a3a!important;
+  color:#d7d7d7!important;
+}
+[data-theme="dark"] .secondary:hover{
+  background:#222222!important;
+}
+
+[data-theme="dark"] .link{
+  color:#c8c8c8!important;
+}
+[data-theme="dark"] .link:hover{
+  background:#1b1b1b!important;
+}
+
+[data-theme="dark"] .theme-toggle{
+  background:#171717!important;
+  border-color:#383838!important;
+  color:#d4d4d4!important;
+}
+[data-theme="dark"] .theme-toggle:hover,
+[data-theme="dark"] .icon-button:hover{
+  background:#202020!important;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select{
+  background:#101010!important;
+  color:#eeeeee!important;
+  border-color:#393939!important;
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder{
+  color:#6d6d6d!important;
+}
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus{
+  outline-color:#747474!important;
+  border-color:#606060!important;
+}
+
+[data-theme="dark"] th{
+  background:#181818!important;
+  color:#929292!important;
+}
+[data-theme="dark"] th,
+[data-theme="dark"] td,
+[data-theme="dark"] .matrix td{
+  border-color:#292929!important;
+}
+[data-theme="dark"] td{
+  color:#c0c0c0!important;
+}
+[data-theme="dark"] .matrix .total-row{
+  background:#1b1b1b!important;
+}
+[data-theme="dark"] .matrix details,
+[data-theme="dark"] .matrix summary{
+  color:#9a9a9a!important;
+}
+[data-theme="dark"] .lowest{
+  color:#e0e0e0!important;
+}
+
+[data-theme="dark"] .badge,
+[data-theme="dark"] .badge.good,
+[data-theme="dark"] .badge.info,
+[data-theme="dark"] .badge.danger{
+  background:#242424!important;
+  color:#d3d3d3!important;
+  border:1px solid #3a3a3a!important;
+}
+
+[data-theme="dark"] .notice{
+  background:#1a1a1a!important;
+  color:#adadad!important;
+}
+[data-theme="dark"] .warning{
+  background:#211f1f!important;
+  color:#bcb5b5!important;
+}
+[data-theme="dark"] .error{
+  background:#251d1e!important;
+  color:#d1b6ba!important;
+  border-color:#463438!important;
+}
+
+[data-theme="dark"] .tabs{
+  border-bottom-color:#2d2d2d!important;
+}
+[data-theme="dark"] .tabs button{
+  color:#8d8d8d!important;
+}
+[data-theme="dark"] .tabs button.selected{
+  color:#ededed!important;
+  border-bottom-color:#c6c6c6!important;
+}
+
+[data-theme="dark"] .workflow-strip{
+  border-top-color:#2d2d2d!important;
+  color:#717171!important;
+}
+[data-theme="dark"] .workflow-strip .reached{
+  color:#c0c0c0!important;
+}
+
+[data-theme="dark"] .timeline>div{
+  border-left-color:#353535!important;
+}
+[data-theme="dark"] .timeline-dot{
+  background:#a4a4a4!important;
+  border-color:#141414!important;
+}
+
+/* ---------- LIGHT MODE ----------
+   Deliberately uses a dark sidebar for stronger fintech contrast.
+*/
+[data-theme="light"] .shell{
+  background:#eeeeee!important;
+  color:#171717!important;
+}
+
+[data-theme="light"] .shell main{
+  background:
+    radial-gradient(circle at 13% 0%,rgba(255,255,255,.95),transparent 27%),
+    linear-gradient(145deg,#efefef 0%,#f4f4f4 52%,#e9e9e9 100%)!important;
+  color:#171717!important;
+}
+
+[data-theme="light"] .shell aside{
+  background:linear-gradient(180deg,#111111 0%,#161616 100%)!important;
+  border-right:1px solid #2c2c2c!important;
+  box-shadow:12px 0 36px rgba(0,0,0,.035)!important;
+}
+
+[data-theme="light"] .topbar{
+  background:rgba(250,250,250,.92)!important;
+  border-bottom:1px solid #d5d5d5!important;
+  color:#777777!important;
+  backdrop-filter:blur(16px);
+}
+
+[data-theme="light"] .brand{
+  color:#f3f3f3!important;
+}
+[data-theme="light"] .brand-icon{
+  background:linear-gradient(145deg,#f2f2f2,#cfcfcf)!important;
+  color:#111111!important;
+  border:1px solid #dddddd!important;
+}
+[data-theme="light"] .brand-dot{
+  color:#9b9b9b!important;
+}
+
+[data-theme="light"] .nav-label{
+  color:#656565!important;
+}
+[data-theme="light"] .shell nav a{
+  color:#a7a7a7!important;
+}
+[data-theme="light"] .shell nav a:hover{
+  color:#f4f4f4!important;
+  background:#1d1d1d!important;
+}
+[data-theme="light"] .shell nav a.active{
+  background:linear-gradient(180deg,#2a2a2a,#222222)!important;
+  color:#f5f5f5!important;
+  border:1px solid #3a3a3a!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+
+[data-theme="light"] .workspace-meta,
+[data-theme="light"] .user{
+  border-color:#303030!important;
+  color:#c4c4c4!important;
+}
+[data-theme="light"] .avatar{
+  background:#292929!important;
+  color:#ededed!important;
+}
+[data-theme="light"] .sidebar-bottom small{
+  color:#888888!important;
+}
+[data-theme="light"] .shell aside .theme-toggle{
+  background:#202020!important;
+  border-color:#3c3c3c!important;
+  color:#dedede!important;
+}
+[data-theme="light"] .shell aside .theme-toggle:hover{
+  background:#292929!important;
+}
+
+[data-theme="light"] .muted,
+[data-theme="light"] small{
+  color:#727272!important;
+}
+
+[data-theme="light"] .panel,
+[data-theme="light"] .stat,
+[data-theme="light"] .auth-card,
+[data-theme="light"] .item-card,
+[data-theme="light"] .approval-record,
+[data-theme="light"] .decision-card{
+  background:
+    linear-gradient(180deg,#ffffff 0%,#f8f8f8 100%)!important;
+  border:1px solid #d3d3d3!important;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.055),
+    inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+
+[data-theme="light"] .stat:hover,
+[data-theme="light"] .panel:hover{
+  border-color:#b9b9b9!important;
+  box-shadow:0 18px 42px rgba(0,0,0,.075)!important;
+}
+
+[data-theme="light"] .stat p,
+[data-theme="light"] td,
+[data-theme="light"] .field>span{
+  color:#6d6d6d!important;
+}
+[data-theme="light"] .stat strong,
+[data-theme="light"] .row-title{
+  color:#181818!important;
+}
+
+[data-theme="light"] .callout{
+  background:
+    linear-gradient(135deg,#e3e3e3 0%,#eeeeee 58%,#e5e5e5 100%)!important;
+  border:1px solid #cfcfcf!important;
+  color:#1c1c1c!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.75),
+    0 12px 30px rgba(0,0,0,.045)!important;
+}
+[data-theme="light"] .callout p:last-child,
+[data-theme="light"] .callout>svg{
+  color:#737373!important;
+}
+
+[data-theme="light"] .primary{
+  background:linear-gradient(180deg,#222222,#111111)!important;
+  border-color:#222222!important;
+  color:#f7f7f7!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.12)!important;
+}
+[data-theme="light"] .primary:hover{
+  background:linear-gradient(180deg,#303030,#1a1a1a)!important;
+}
+
+[data-theme="light"] .secondary{
+  background:#ffffff!important;
+  border-color:#d0d0d0!important;
+  color:#3b3b3b!important;
+}
+[data-theme="light"] .secondary:hover{
+  background:#ececec!important;
+}
+
+[data-theme="light"] .link{
+  color:#444444!important;
+}
+[data-theme="light"] .link:hover{
+  background:#e6e6e6!important;
+}
+
+[data-theme="light"] .theme-toggle{
+  background:#e4e4e4!important;
+  border-color:#cdcdcd!important;
+  color:#444444!important;
+}
+
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select{
+  background:#ffffff!important;
+  color:#1d1d1d!important;
+  border-color:#cccccc!important;
+}
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder{
+  color:#919191!important;
+}
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus,
+[data-theme="light"] select:focus{
+  outline-color:#7b7b7b!important;
+  border-color:#858585!important;
+}
+
+[data-theme="light"] th{
+  background:#ededed!important;
+  color:#6c6c6c!important;
+}
+[data-theme="light"] th,
+[data-theme="light"] td,
+[data-theme="light"] .matrix td{
+  border-color:#dddddd!important;
+}
+[data-theme="light"] td{
+  color:#555555!important;
+}
+[data-theme="light"] .matrix .total-row{
+  background:#ececec!important;
+}
+[data-theme="light"] .matrix details,
+[data-theme="light"] .matrix summary{
+  color:#707070!important;
+}
+[data-theme="light"] .lowest{
+  color:#303030!important;
+}
+
+[data-theme="light"] .badge,
+[data-theme="light"] .badge.good,
+[data-theme="light"] .badge.info,
+[data-theme="light"] .badge.danger{
+  background:#e8e8e8!important;
+  color:#4b4b4b!important;
+  border:1px solid #d0d0d0!important;
+}
+
+[data-theme="light"] .notice{
+  background:#eeeeee!important;
+  color:#5e5e5e!important;
+}
+[data-theme="light"] .warning{
+  background:#f0eeee!important;
+  color:#6c6262!important;
+}
+[data-theme="light"] .error{
+  background:#f5eded!important;
+  color:#745b60!important;
+  border-color:#e2d4d6!important;
+}
+
+[data-theme="light"] .tabs{
+  border-bottom-color:#d6d6d6!important;
+}
+[data-theme="light"] .tabs button{
+  color:#747474!important;
+}
+[data-theme="light"] .tabs button.selected{
+  color:#1b1b1b!important;
+  border-bottom-color:#525252!important;
+}
+
+[data-theme="light"] .workflow-strip{
+  border-top-color:#d5d5d5!important;
+  color:#7c7c7c!important;
+}
+[data-theme="light"] .workflow-strip .reached{
+  color:#4b4b4b!important;
+}
+
+[data-theme="light"] .timeline>div{
+  border-left-color:#d2d2d2!important;
+}
+[data-theme="light"] .timeline-dot{
+  background:#777777!important;
+  border-color:#fafafa!important;
+}
+
+/* === V5.4 PURE NEUTRAL DASHBOARD END === */
+
+/* === NEUTRAL MICRO POLISH V5 START === */
+
+input[type="checkbox"],
+input[type="radio"]{
+  accent-color:#555 !important;
+}
+
+.loading{
+  color:#777 !important;
+  gap:11px;
+  background:transparent !important;
+  font-weight:500;
+}
+.loading::before{
+  content:"";
+  width:15px;
+  height:15px;
+  border-radius:50%;
+  border:1.5px solid rgba(90,90,90,.30);
+  border-top-color:#555;
+  animation:neutralLoaderSpin .8s linear infinite;
+}
+@keyframes neutralLoaderSpin{
+  to{transform:rotate(360deg)}
+}
+[data-theme="dark"] .loading{
+  color:#a3a3a3 !important;
+}
+[data-theme="dark"] .loading::before{
+  border-color:rgba(255,255,255,.14);
+  border-top-color:#c7c7c7;
+}
+
+.vendor-shell .empty{
+  color:#777 !important;
+  border:1px dashed #d2d2d2;
+  background:#f5f5f5;
+  border-radius:10px;
+  margin-bottom:20px;
+}
+[data-theme="dark"] .vendor-shell .empty{
+  color:#969696 !important;
+  border-color:#343434;
+  background:#141414;
+}
+
+.password-wrap input{
+  padding-right:64px !important;
+}
+.password-text-toggle{
+  position:absolute;
+  right:7px;
+  top:50%;
+  transform:translateY(-50%);
+  min-width:48px;
+  height:30px;
+  padding:0 9px;
+  border:1px solid #d1d1d1;
+  border-radius:7px;
+  background:#f4f4f4;
+  color:#555;
+  display:grid;
+  place-items:center;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.2px;
+}
+.password-text-toggle:hover{
+  background:#e9e9e9;
+  color:#222;
+}
+.password-text-toggle:focus-visible{
+  outline:2px solid #777;
+  outline-offset:2px;
+}
+[data-theme="dark"] .password-text-toggle{
+  background:#191919;
+  border-color:#353535;
+  color:#aaa;
+}
+[data-theme="dark"] .password-text-toggle:hover{
+  background:#222;
+  color:#eee;
+}
+
+.supplier-progress-row.done .supplier-progress-index{
+  background:#dedede !important;
+  border-color:#dedede !important;
+  color:#111 !important;
+  box-shadow:none !important;
+}
+.supplier-progress-row.current .supplier-progress-index{
+  background:transparent !important;
+  border-color:#777 !important;
+  color:#d8d8d8 !important;
+  box-shadow:none !important;
+}
+[data-theme="light"] .supplier-progress-row.done .supplier-progress-index{
+  background:#222 !important;
+  border-color:#222 !important;
+  color:#fff !important;
+}
+[data-theme="light"] .supplier-progress-row.current .supplier-progress-index{
+  background:#f3f3f3 !important;
+  border-color:#777 !important;
+  color:#333 !important;
+}
+
+.checkbox input[type="checkbox"],
+.supplier-declaration input[type="checkbox"]{
+  accent-color:#5a5a5a !important;
+}
+
+.vendor-shell .panel table td:last-child{
+  color:#a3a3a3;
+}
+[data-theme="light"] .vendor-shell .panel table td:last-child{
+  color:#626262;
+}
+
+/* === NEUTRAL MICRO POLISH V5 END === */
+
+/* === NEUTRAL EYE ICON FIX V5.1 START === */
+
+.password-wrap .password-eye-neutral{
+  color:#747474 !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+}
+
+.password-wrap .password-eye-neutral svg{
+  stroke:currentColor !important;
+  color:inherit !important;
+}
+
+.password-wrap .password-eye-neutral:hover{
+  color:#2f2f2f !important;
+  background:#ececec !important;
+}
+
+.password-wrap .password-eye-neutral:focus-visible{
+  outline:1px solid #777 !important;
+  outline-offset:2px;
+}
+
+[data-theme="dark"] .password-wrap .password-eye-neutral{
+  color:#8e8e8e !important;
+  background:transparent !important;
+}
+
+[data-theme="dark"] .password-wrap .password-eye-neutral:hover{
+  color:#dddddd !important;
+  background:#1d1d1d !important;
+}
+
+/* === NEUTRAL EYE ICON FIX V5.1 END === */
+
+/* === LIGHT MODE NEUTRAL POLISH V6.2 START === */
+
+/* ---------------------------------------------------------------
+   LOGIN / AUTH HEADER
+   The light auth page must use a dark wordmark on the pale canvas.
+   --------------------------------------------------------------- */
+[data-theme="light"] .auth-topline .brand,
+[data-theme="light"] .auth-portal .auth-topline .brand{
+  color:#151515 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+
+[data-theme="light"] .auth-topline .brand-icon{
+  background:#181818 !important;
+  color:#ffffff !important;
+  border-color:#181818 !important;
+}
+
+[data-theme="light"] .auth-topline .brand-dot{
+  color:#666666 !important;
+}
+
+/* Keep the dark-mode wordmark correct after the light override. */
+[data-theme="dark"] .auth-topline .brand{
+  color:#f3f3f3 !important;
+}
+[data-theme="dark"] .auth-topline .brand-icon{
+  background:#efefef !important;
+  color:#111111 !important;
+  border-color:#efefef !important;
+}
+[data-theme="dark"] .auth-topline .brand-dot{
+  color:#8d8d8d !important;
+}
+
+
+/* ---------------------------------------------------------------
+   LOGIN INPUTS
+   Remove Chrome/Edge blue autofill tint and keep focus monochrome.
+   --------------------------------------------------------------- */
+[data-theme="light"] .auth-panel input,
+[data-theme="light"] .auth-card input{
+  background:#fafafa !important;
+  color:#171717 !important;
+  border-color:#cfcfcf !important;
+  caret-color:#171717 !important;
+  box-shadow:none !important;
+}
+
+[data-theme="light"] .auth-panel input:hover,
+[data-theme="light"] .auth-card input:hover{
+  background:#f7f7f7 !important;
+  border-color:#bcbcbc !important;
+}
+
+[data-theme="light"] .auth-panel input:focus,
+[data-theme="light"] .auth-card input:focus{
+  background:#ffffff !important;
+  color:#111111 !important;
+  border-color:#777777 !important;
+  outline:2px solid rgba(70,70,70,.18) !important;
+  box-shadow:0 0 0 1px #777777 !important;
+}
+
+/* Chrome / Edge saved credentials and autofill. */
+[data-theme="light"] .auth-panel input:-webkit-autofill,
+[data-theme="light"] .auth-panel input:-webkit-autofill:hover,
+[data-theme="light"] .auth-panel input:-webkit-autofill:focus,
+[data-theme="light"] .auth-card input:-webkit-autofill,
+[data-theme="light"] .auth-card input:-webkit-autofill:hover,
+[data-theme="light"] .auth-card input:-webkit-autofill:focus{
+  -webkit-text-fill-color:#171717 !important;
+  caret-color:#171717 !important;
+  -webkit-box-shadow:0 0 0 1000px #fafafa inset !important;
+  box-shadow:0 0 0 1000px #fafafa inset !important;
+  border-color:#cfcfcf !important;
+  transition:background-color 9999s ease-out 0s !important;
+}
+
+[data-theme="light"] .auth-panel input:autofill,
+[data-theme="light"] .auth-card input:autofill{
+  background:#fafafa !important;
+  color:#171717 !important;
+}
+
+/* Password eye stays neutral in light mode. */
+[data-theme="light"] .password-wrap .password-eye-neutral,
+[data-theme="light"] .password-wrap .icon-button{
+  color:#777777 !important;
+  background:transparent !important;
+}
+[data-theme="light"] .password-wrap .password-eye-neutral:hover,
+[data-theme="light"] .password-wrap .icon-button:hover{
+  color:#252525 !important;
+  background:#ececec !important;
+}
+
+
+/* ---------------------------------------------------------------
+   LIGHT-MODE DARK SIDEBAR
+   The dashboard intentionally keeps a charcoal sidebar in light mode.
+   Make every identity/control element readable against it.
+   --------------------------------------------------------------- */
+[data-theme="light"] .staff-shell aside,
+[data-theme="light"] .vendor-shell aside{
+  color:#ededed;
+}
+
+[data-theme="light"] .staff-shell aside .brand,
+[data-theme="light"] .vendor-shell aside .brand{
+  color:#f5f5f5 !important;
+  opacity:1 !important;
+}
+
+[data-theme="light"] .staff-shell aside .brand-icon,
+[data-theme="light"] .vendor-shell aside .brand-icon{
+  background:#ededed !important;
+  color:#111111 !important;
+  border-color:#ededed !important;
+}
+
+[data-theme="light"] .staff-shell aside .brand-dot,
+[data-theme="light"] .vendor-shell aside .brand-dot{
+  color:#929292 !important;
+}
+
+[data-theme="light"] .staff-shell aside .user,
+[data-theme="light"] .vendor-shell aside .user{
+  color:#eeeeee !important;
+}
+
+[data-theme="light"] .staff-shell aside .user strong,
+[data-theme="light"] .vendor-shell aside .user strong{
+  color:#eeeeee !important;
+}
+
+[data-theme="light"] .staff-shell aside .user small,
+[data-theme="light"] .vendor-shell aside .user small{
+  color:#929292 !important;
+}
+
+/* Logout button was inheriting the light-mode black foreground while
+   sitting on the charcoal sidebar. Give it a visible neutral treatment. */
+[data-theme="light"] .staff-shell aside .user button,
+[data-theme="light"] .vendor-shell aside .user button{
+  width:34px !important;
+  height:34px !important;
+  flex:0 0 34px !important;
+  display:grid !important;
+  place-items:center !important;
+  margin-left:auto !important;
+  padding:0 !important;
+  border:1px solid transparent !important;
+  border-radius:8px !important;
+  background:transparent !important;
+  color:#d2d2d2 !important;
+  opacity:1 !important;
+}
+
+[data-theme="light"] .staff-shell aside .user button svg,
+[data-theme="light"] .vendor-shell aside .user button svg{
+  color:inherit !important;
+  stroke:currentColor !important;
+  opacity:1 !important;
+}
+
+[data-theme="light"] .staff-shell aside .user button:hover,
+[data-theme="light"] .vendor-shell aside .user button:hover{
+  color:#ffffff !important;
+  background:#242424 !important;
+  border-color:#383838 !important;
+}
+
+[data-theme="light"] .staff-shell aside .user button:focus-visible,
+[data-theme="light"] .vendor-shell aside .user button:focus-visible{
+  outline:2px solid #777777 !important;
+  outline-offset:2px !important;
+}
+
+/* Neutral browser text selection for the authentication page. */
+.auth-portal ::selection{
+  background:#d7d7d7;
+  color:#111111;
+}
+[data-theme="dark"] .auth-portal ::selection{
+  background:#555555;
+  color:#ffffff;
+}
+
+/* === LIGHT MODE NEUTRAL POLISH V6.2 END === */
+
+/* === LOGIN + SIDEBAR STABILITY V6.3 START === */
+
+/* Login fields: force an entirely monochrome surface in both themes.
+   This overrides Chromium's blue saved-password/autofill paint. */
+.auth-panel input,
+.auth-card input{
+  appearance:none !important;
+  -webkit-appearance:none !important;
+  background-image:none !important;
+  filter:none !important;
+}
+
+[data-theme="dark"] .auth-panel input,
+[data-theme="dark"] .auth-card input{
+  background-color:#111111 !important;
+  color:#eeeeee !important;
+  border-color:#343434 !important;
+  caret-color:#eeeeee !important;
+  box-shadow:none !important;
+}
+
+[data-theme="dark"] .auth-panel input:hover,
+[data-theme="dark"] .auth-card input:hover{
+  background-color:#141414 !important;
+  border-color:#474747 !important;
+}
+
+[data-theme="dark"] .auth-panel input:focus,
+[data-theme="dark"] .auth-card input:focus{
+  background-color:#151515 !important;
+  color:#ffffff !important;
+  border-color:#747474 !important;
+  outline:2px solid rgba(160,160,160,.14) !important;
+  box-shadow:0 0 0 1px #747474 !important;
+}
+
+[data-theme="light"] .auth-panel input,
+[data-theme="light"] .auth-card input{
+  background-color:#fafafa !important;
+  color:#171717 !important;
+  border-color:#cdcdcd !important;
+  caret-color:#171717 !important;
+  box-shadow:none !important;
+}
+
+[data-theme="light"] .auth-panel input:hover,
+[data-theme="light"] .auth-card input:hover{
+  background-color:#f7f7f7 !important;
+  border-color:#b7b7b7 !important;
+}
+
+[data-theme="light"] .auth-panel input:focus,
+[data-theme="light"] .auth-card input:focus{
+  background-color:#ffffff !important;
+  color:#111111 !important;
+  border-color:#707070 !important;
+  outline:2px solid rgba(70,70,70,.15) !important;
+  box-shadow:0 0 0 1px #707070 !important;
+}
+
+/* Chromium / Edge autofill: override all blue/colored credential paint. */
+[data-theme="dark"] .auth-panel input:-webkit-autofill,
+[data-theme="dark"] .auth-panel input:-webkit-autofill:hover,
+[data-theme="dark"] .auth-panel input:-webkit-autofill:focus,
+[data-theme="dark"] .auth-panel input:-webkit-autofill:active,
+[data-theme="dark"] .auth-card input:-webkit-autofill,
+[data-theme="dark"] .auth-card input:-webkit-autofill:hover,
+[data-theme="dark"] .auth-card input:-webkit-autofill:focus,
+[data-theme="dark"] .auth-card input:-webkit-autofill:active{
+  -webkit-text-fill-color:#eeeeee !important;
+  caret-color:#eeeeee !important;
+  background-color:#111111 !important;
+  -webkit-box-shadow:0 0 0 1000px #111111 inset !important;
+  box-shadow:0 0 0 1000px #111111 inset !important;
+  border-color:#343434 !important;
+  transition:background-color 999999s ease-in-out 0s !important;
+}
+
+[data-theme="light"] .auth-panel input:-webkit-autofill,
+[data-theme="light"] .auth-panel input:-webkit-autofill:hover,
+[data-theme="light"] .auth-panel input:-webkit-autofill:focus,
+[data-theme="light"] .auth-panel input:-webkit-autofill:active,
+[data-theme="light"] .auth-card input:-webkit-autofill,
+[data-theme="light"] .auth-card input:-webkit-autofill:hover,
+[data-theme="light"] .auth-card input:-webkit-autofill:focus,
+[data-theme="light"] .auth-card input:-webkit-autofill:active{
+  -webkit-text-fill-color:#171717 !important;
+  caret-color:#171717 !important;
+  background-color:#fafafa !important;
+  -webkit-box-shadow:0 0 0 1000px #fafafa inset !important;
+  box-shadow:0 0 0 1000px #fafafa inset !important;
+  border-color:#cdcdcd !important;
+  transition:background-color 999999s ease-in-out 0s !important;
+}
+
+/* Standards-based autofill fallback. */
+[data-theme="dark"] .auth-panel input:autofill,
+[data-theme="dark"] .auth-card input:autofill{
+  background:#111111 !important;
+  color:#eeeeee !important;
+}
+[data-theme="light"] .auth-panel input:autofill,
+[data-theme="light"] .auth-card input:autofill{
+  background:#fafafa !important;
+  color:#171717 !important;
+}
+
+/* Read-only is used only before the user focuses a credential field.
+   Keep it visually identical so there is no disabled-looking state. */
+.auth-panel input[readonly],
+.auth-card input[readonly]{
+  opacity:1 !important;
+  cursor:text !important;
+}
+
+/* Sidebar identity row: identical geometry in both light and dark themes.
+   This prevents Finance Administrator from wrapping only in one theme. */
+.staff-shell aside .sidebar-bottom,
+.vendor-shell aside .sidebar-bottom{
+  width:100% !important;
+}
+
+.staff-shell aside .user,
+.vendor-shell aside .user{
+  display:grid !important;
+  grid-template-columns:34px minmax(0,1fr) 28px !important;
+  align-items:center !important;
+  column-gap:8px !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+
+.staff-shell aside .user > div,
+.vendor-shell aside .user > div{
+  min-width:0 !important;
+  width:100% !important;
+}
+
+.staff-shell aside .user strong,
+.vendor-shell aside .user strong{
+  display:block !important;
+  margin:0 !important;
+  font-size:11px !important;
+  line-height:1.25 !important;
+  font-weight:650 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.staff-shell aside .user small,
+.vendor-shell aside .user small{
+  display:block !important;
+  margin-top:3px !important;
+  font-size:10.5px !important;
+  line-height:1.2 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+.staff-shell aside .user button,
+.vendor-shell aside .user button{
+  position:static !important;
+  width:28px !important;
+  min-width:28px !important;
+  height:28px !important;
+  min-height:28px !important;
+  margin:0 !important;
+  padding:0 !important;
+  display:grid !important;
+  place-items:center !important;
+  justify-self:end !important;
+  border-radius:7px !important;
+  flex:none !important;
+}
+
+.staff-shell aside .user .avatar,
+.vendor-shell aside .user .avatar{
+  width:34px !important;
+  min-width:34px !important;
+  height:34px !important;
+  margin:0 !important;
+}
+
+/* Keep the sidebar text/icon colors stable across theme switches because
+   the sidebar itself stays dark in both modes. */
+[data-theme="light"] .staff-shell aside .user strong,
+[data-theme="light"] .vendor-shell aside .user strong,
+[data-theme="dark"] .staff-shell aside .user strong,
+[data-theme="dark"] .vendor-shell aside .user strong{
+  color:#ededed !important;
+}
+
+[data-theme="light"] .staff-shell aside .user small,
+[data-theme="light"] .vendor-shell aside .user small,
+[data-theme="dark"] .staff-shell aside .user small,
+[data-theme="dark"] .vendor-shell aside .user small{
+  color:#929292 !important;
+}
+
+[data-theme="light"] .staff-shell aside .user button,
+[data-theme="light"] .vendor-shell aside .user button,
+[data-theme="dark"] .staff-shell aside .user button,
+[data-theme="dark"] .vendor-shell aside .user button{
+  color:#cfcfcf !important;
+  background:transparent !important;
+  border:1px solid transparent !important;
+}
+
+[data-theme="light"] .staff-shell aside .user button:hover,
+[data-theme="light"] .vendor-shell aside .user button:hover,
+[data-theme="dark"] .staff-shell aside .user button:hover,
+[data-theme="dark"] .vendor-shell aside .user button:hover{
+  color:#ffffff !important;
+  background:#222222 !important;
+  border-color:#373737 !important;
+}
+
+/* === LOGIN + SIDEBAR STABILITY V6.3 END === */

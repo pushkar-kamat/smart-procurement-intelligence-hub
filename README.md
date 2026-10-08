@@ -31,7 +31,7 @@ Edit root `.env`:
 - `SUPABASE_URL`: your project URL.
 - `SUPABASE_ANON_KEY`: your publishable/anon client key, not a service-role key.
 - `SUPABASE_SERVICE_ROLE_KEY`: only needed for optional user seeding and Supabase file storage. Backend only.
-- `DEMO_PASSWORD`: optional locally supplied 12+ character password for creating demo accounts.
+- `DEMO_PASSWORD`: demo password used when creating/migrating seeded accounts. For the classroom demo use `Procure123`.
 
 Edit `frontend/.env` with `VITE_API_URL=http://localhost:8000`, `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` using the same project. **Never put a service-role key or DB password in a VITE variable.**
 
@@ -60,19 +60,21 @@ cd ..
 ```
 Creates/links these role templates, without printing or storing passwords:
 
+Demo password: `Procure123` (local/classroom demo only).
+
 | Email | Role |
 |---|---|
-| requester@example.com | requester |
-| procurement@example.com | procurement |
-| approver@example.com | approver |
-| finance@example.com | finance_admin |
+| requester@procure.com | requester |
+| procurement@procure.com | procurement |
+| approver@procure.com | approver |
+| finance@procure.com | finance_admin |
 
 Existing Supabase users keep their passwords. The utility links the synthetic requester's records to the real demo identity. Use only in your own demo project. No invitations or emails are sent by the utility.
 
 Alternative: create real accounts through signup and confirm email. Their first sign-in creates a requester profile. Bootstrap one administrator through the operator CLI, after that first sign-in:
 ```powershell
 cd backend
-../.venv/Scripts/python.exe -m app.manage_profile your-email@example.com finance_admin
+../.venv/Scripts/python.exe -m app.manage_profile your-email@procure.com finance_admin
 ```
 That administrator can assign other signed-in profiles from Operations. Operator role changes are audited. Normal signup can never choose a privileged role.
 

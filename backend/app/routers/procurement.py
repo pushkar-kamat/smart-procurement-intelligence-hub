@@ -110,16 +110,32 @@ def submit(id:int,db:Session=DB,user=REQ):
 def cancel(id:int,data:CommentIn,db:Session=DB,user=REQ):
     req=request_for(db,id,user,True);state(req,'DRAFT','SUBMITTED');req.status='CANCELLED';audit(db,user,'REQUISITION_CANCELLED',req,details=data.model_dump());return row(req)
 
+def vendor_view(db,v):
+    result=row(v)
+    result['risk']=risk_for(db,v.id)
+    result['lifecycle']=result['risk']['history_status']
+    return result
+
 @router.get('/vendors')
-def vendors(db:Session=DB,user=STAFF): return [row(x) for x in db.scalars(select(Vendor).order_by(Vendor.name))]
+def vendors(db:Session=DB,user=STAFF):
+    return [vendor_view(db,x) for x in db.scalars(select(Vendor).order_by(Vendor.name))]
+
 @router.post('/vendors',status_code=201)
 def create_vendor(data:VendorIn,db:Session=DB,user=PROC):
-    v=Vendor(**data.model_dump());db.add(v);db.flush();audit(db,user,'VENDOR_CREATED',entity=v);return row(v)
+    duplicate=db.scalar(select(Vendor).where(func.lower(Vendor.email)==data.email.lower()))
+    if duplicate:raise HTTPException(409,'A vendor with this email is already registered')
+    v=Vendor(**data.model_dump());db.add(v);db.flush()
+    db.add(VendorHistory(vendor_id=v.id))
+    audit(db,user,'VENDOR_CREATED',entity=v,details={'history_status':'PROVISIONAL','risk_score':None})
+    db.flush();return vendor_view(db,v)
+
 @router.put('/vendors/{id}')
 def update_vendor(id:int,data:VendorIn,db:Session=DB,user=PROC):
     v=fetch(db,Vendor,id)
+    duplicate=db.scalar(select(Vendor).where(func.lower(Vendor.email)==data.email.lower(),Vendor.id!=id))
+    if duplicate:raise HTTPException(409,'A vendor with this email is already registered')
     for k,value in data.model_dump().items():setattr(v,k,value)
-    audit(db,user,'VENDOR_UPDATED',entity=v,details={'active':v.active});return row(v)
+    audit(db,user,'VENDOR_UPDATED',entity=v,details={'active':v.active});return vendor_view(db,v)
 @router.get('/vendors/{id}/risk')
 def risk(id:int,db:Session=DB,user=STAFF): fetch(db,Vendor,id);return risk_for(db,id)
 @router.get('/requisitions/{id}/invitations')
@@ -215,6 +231,56 @@ def comparison(id:int,db:Session=DB,user=STAFF):
     for q in data['quotations']:q['risk']=risk_for(db,q['vendor_id'])
     data['lowest_total']=min((float(q['grand_total']) for q in data['quotations']),default=None)
     return data
+def approval_policy(db,q):
+    # Normal established purchases use one purchase approval.
+    # Finance is added only when an escalation condition is present.
+    rules=list(db.scalars(
+        select(ApprovalRule)
+        .where(ApprovalRule.active==True)
+        .order_by(ApprovalRule.level)
+    ))
+    purchase_rule=next((x for x in rules if x.required_role=='approver'),None)
+    finance_rule=next((x for x in rules if x.required_role=='finance_admin'),None)
+    if not purchase_rule:
+        raise HTTPException(409,'Purchase approval policy is missing')
+
+    risk=risk_for(db,q.vendor_id)
+    quote_items=list(db.scalars(
+        select(QuotationItem).where(QuotationItem.quotation_id==q.id)
+    ))
+    anomaly=any(bool((item.analysis or {}).get('anomaly_flag')) for item in quote_items)
+
+    reasons=[]
+    if finance_rule and q.grand_total>=finance_rule.min_amount:
+        reasons.append(
+            f'quotation value INR {float(q.grand_total):,.2f} meets finance threshold '
+            f'INR {float(finance_rule.min_amount):,.2f}'
+        )
+    if risk.get('band')=='NEW_VENDOR':
+        reasons.append('selected vendor is provisional / NEW_VENDOR')
+    elif risk.get('band')=='HIGH':
+        reasons.append('selected vendor risk band is HIGH')
+    if anomaly:
+        reasons.append('selected quotation contains a flagged price anomaly')
+
+    plan=[{
+        'level':purchase_rule.level,
+        'role':purchase_rule.required_role,
+        'name':purchase_rule.name,
+        'reason':'Standard purchase approval',
+    }]
+    if reasons:
+        if not finance_rule:
+            raise HTTPException(409,'Finance escalation is required but no finance approval rule is active')
+        plan.append({
+            'level':finance_rule.level,
+            'role':finance_rule.required_role,
+            'name':finance_rule.name,
+            'reason':'; '.join(reasons),
+        })
+    return plan,reasons
+
+
 @router.post('/requisitions/{id}/send-for-approval')
 def send_for_approval(id:int,data:SelectionIn,db:Session=DB,user=PROC):
     req=request_for(db,id,user,True);state(req,'COMPARISON_READY')
@@ -222,17 +288,30 @@ def send_for_approval(id:int,data:SelectionIn,db:Session=DB,user=PROC):
     if not q:raise HTTPException(422,'Select a vendor with a complete quotation')
     if not fetch(db,Vendor,data.vendor_id).active:raise HTTPException(409,'Selected vendor is inactive')
     if q.valid_until and q.valid_until<date.today():raise HTTPException(409,'Selected quotation has expired')
-    rules=list(db.scalars(select(ApprovalRule).where(ApprovalRule.active==True,ApprovalRule.min_amount<=q.grand_total).order_by(ApprovalRule.level)))
-    rules=[x for x in rules if x.max_amount is None or q.grand_total<x.max_amount]
-    if not rules or len({x.level for x in rules})!=len(rules):raise HTTPException(409,'Approval policy is missing or ambiguous')
-    req.approval_plan=[{'level':x.level,'role':x.required_role,'name':x.name} for x in rules]
-    req.preferred_vendor_id=data.vendor_id;req.selection_reason=data.comment;req.status='PENDING_APPROVAL'
+
+    plan,reasons=approval_policy(db,q)
+    req.approval_plan=plan
+    req.preferred_vendor_id=data.vendor_id
+    req.selection_reason=data.comment
+    req.status='PENDING_APPROVAL'
+
     for invitation in db.scalars(select(Invitation).where(Invitation.requisition_id==id)):
         if invitation.vendor_id==data.vendor_id:
             invitation.status='SELECTED_FOR_APPROVAL'
         elif invitation.status=='RESPONDED':
             invitation.status='NOT_SELECTED'
-    audit(db,user,'PREFERRED_VENDOR_PROPOSED',req,details=data.model_dump());audit(db,user,'SENT_FOR_APPROVAL',req,details={'plan':req.approval_plan});return row(req)
+
+    audit(db,user,'PREFERRED_VENDOR_PROPOSED',req,details=data.model_dump())
+    audit(
+        db,user,'SENT_FOR_APPROVAL',req,
+        details={
+            'plan':req.approval_plan,
+            'finance_escalation':bool(reasons),
+            'escalation_reasons':reasons,
+        },
+    )
+    return detail(db,req)
+
 @router.get('/approvals/inbox')
 def inbox(db:Session=DB,user=Depends(roles('approver','finance_admin'))):
     results=[]

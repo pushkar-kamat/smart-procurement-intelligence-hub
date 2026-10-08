@@ -1,0 +1,111 @@
+.supplier-onboarding-note{display:grid;gap:10px}
+.supplier-onboarding-note strong{font-size:12px;color:inherit}
+.supplier-onboarding-note span{font-size:11px;line-height:1.6}
+.supplier-onboarding-note .portal-switch-link{width:max-content}
+.supplier-application-page{min-height:100vh;overflow:auto}
+.supplier-application-wrap{position:relative;z-index:1;width:min(1240px,calc(100% - 80px));margin:0 auto;padding:150px 0 70px;display:grid;grid-template-columns:minmax(280px,.72fr) minmax(560px,1.28fr);gap:70px;align-items:start}
+.supplier-application-intro{position:sticky;top:145px}
+.supplier-application-intro h1{font-family:Manrope,Arial,sans-serif;font-size:clamp(44px,5vw,72px);line-height:.98;letter-spacing:-3px;margin:26px 0 22px;max-width:650px}
+.supplier-application-intro>p{max-width:560px;line-height:1.7;color:#8d8d8d}
+.supplier-process{margin-top:34px;border:1px solid #323232;border-radius:14px;overflow:hidden;background:#151515}
+.supplier-process span{display:flex;align-items:center;gap:14px;padding:15px 17px;border-bottom:1px solid #303030;font-size:12px}
+.supplier-process span:last-child{border-bottom:0}
+.supplier-process b{display:grid;place-items:center;width:27px;height:27px;border:1px solid #454545;border-radius:7px;font-size:9px}
+.supplier-apply-card{background:linear-gradient(180deg,#171717,#121212);border:1px solid #333;border-radius:18px;padding:30px;box-shadow:0 28px 80px rgba(0,0,0,.28)}
+.supplier-apply-card fieldset{border:0;padding:0;margin:0}
+.supplier-form-grid{margin:22px 0 5px}
+.supplier-declaration{margin:18px 0;align-items:flex-start;line-height:1.5}
+.supplier-form-footer{display:flex;align-items:center;gap:8px;margin-top:18px;padding-top:16px;border-top:1px solid #303030;font-size:12px;color:#8d8d8d}
+.supplier-application-success{display:grid;justify-items:start;gap:13px;padding:12px}
+.supplier-application-success h2{font-size:28px;margin:0}
+.supplier-back-link{text-decoration:none;margin-top:4px}
+.vendor-header-actions{padding:0}
+.vendor-applications-panel{padding:25px;margin-bottom:24px}
+.vendor-application-list{display:grid;gap:14px;margin-top:18px}
+.vendor-application-card{border:1px solid #333;border-radius:12px;padding:20px;background:linear-gradient(180deg,#181818,#141414)}
+.vendor-application-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:17px}
+.vendor-application-card-head h3{margin:4px 0 2px}
+.vendor-application-card-head span,.vendor-application-card-head small{color:#8d8d8d;font-size:11px}
+.vendor-application-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:#303030;border:1px solid #303030;border-radius:9px;overflow:hidden}
+.vendor-application-facts>span{background:#121212;padding:14px;font-size:11px;line-height:1.55;overflow-wrap:anywhere}
+.vendor-application-facts small,.vendor-application-facts b{display:block}
+.vendor-application-facts small{margin-bottom:5px;color:#888;text-transform:uppercase;letter-spacing:.8px;font-size:8px}
+.vendor-application-facts b{margin-bottom:3px}
+.application-notes{font-size:12px;color:#919191;padding:13px 2px 0}
+.application-review-box{margin-top:16px;padding-top:16px;border-top:1px solid #303030}
+.application-review-actions{display:flex;gap:10px;margin-top:12px}
+.application-reviewed{display:grid;gap:4px;margin-top:15px;padding:13px;border:1px solid #333;border-radius:8px}
+.application-reviewed span,.application-reviewed small{font-size:10px;color:#8d8d8d}
+[data-theme="light"] .supplier-process{background:#f6f6f6;border-color:#d4d4d4}
+[data-theme="light"] .supplier-process span{border-color:#d7d7d7}
+[data-theme="light"] .supplier-process b{border-color:#c6c6c6}
+[data-theme="light"] .supplier-application-intro>p{color:#696969}
+[data-theme="light"] .supplier-apply-card{background:linear-gradient(180deg,#fff,#f7f7f7);border-color:#d2d2d2;box-shadow:0 24px 60px rgba(0,0,0,.08)}
+[data-theme="light"] .supplier-form-footer{border-color:#d6d6d6;color:#707070}
+[data-theme="light"] .vendor-application-card{background:linear-gradient(180deg,#fff,#f7f7f7);border-color:#d2d2d2}
+[data-theme="light"] .vendor-application-card-head span,[data-theme="light"] .vendor-application-card-head small,[data-theme="light"] .application-notes,[data-theme="light"] .application-reviewed span,[data-theme="light"] .application-reviewed small{color:#6d6d6d}
+[data-theme="light"] .vendor-application-facts{background:#d6d6d6;border-color:#d6d6d6}
+[data-theme="light"] .vendor-application-facts>span{background:#fafafa}
+[data-theme="light"] .vendor-application-facts small{color:#707070}
+[data-theme="light"] .application-review-box{border-color:#d7d7d7}
+[data-theme="light"] .application-reviewed{border-color:#d3d3d3}
+@media(max-width:1000px){.supplier-application-wrap{grid-template-columns:1fr;width:min(760px,calc(100% - 40px));padding-top:120px}.supplier-application-intro{position:static}.vendor-application-facts{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){.supplier-application-wrap{width:calc(100% - 24px);padding-top:100px}.supplier-apply-card{padding:20px}.supplier-form-grid,.vendor-application-facts{grid-template-columns:1fr}.supplier-application-intro h1{font-size:42px;letter-spacing:-2px}.application-review-actions,.vendor-header-actions{flex-direction:column;align-items:stretch}}
+
+/* === VENDOR APPLICATION STATUS DASHBOARD V4 === */
+.supplier-onboarding-actions{display:flex;flex-wrap:wrap;gap:10px}
+.supplier-success-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.supplier-status-page{min-height:100vh;overflow:auto}
+.supplier-status-wrap{position:relative;z-index:1;width:min(1180px,calc(100% - 80px));margin:0 auto;padding:150px 0 72px;display:grid;grid-template-columns:minmax(300px,.72fr) minmax(520px,1.28fr);gap:70px;align-items:start}
+.supplier-status-intro{position:sticky;top:145px}
+.supplier-status-intro h1{font-family:Manrope,Arial,sans-serif;font-size:clamp(44px,5vw,70px);line-height:.98;letter-spacing:-3px;margin:26px 0 22px;max-width:610px}
+.supplier-status-intro>p{max-width:540px;line-height:1.7;color:#8d8d8d}
+.supplier-status-card{background:linear-gradient(180deg,#171717,#121212);border:1px solid #333;border-radius:18px;padding:30px;box-shadow:0 28px 80px rgba(0,0,0,.28)}
+.supplier-status-card fieldset{border:0;margin:0;padding:0}
+.supplier-status-dashboard{display:grid;gap:22px}
+.supplier-status-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.supplier-status-head h2{margin:3px 0 5px;font-size:28px}
+.supplier-status-banner{display:grid;gap:5px;padding:18px;border:1px solid #343434;border-radius:12px;background:#151515}
+.supplier-status-banner span,.supplier-status-banner p{color:#909090;font-size:11px;margin:0}
+.supplier-status-banner strong{font-size:22px}
+.supplier-status-banner.approved{border-color:#525252}
+.supplier-status-banner.rejected{background:#21191a;border-color:#493437}
+.supplier-tracking-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:#303030;border:1px solid #303030;border-radius:10px;overflow:hidden}
+.supplier-tracking-grid>div{background:#121212;padding:15px;display:grid;gap:5px}
+.supplier-tracking-grid small,.supplier-approved-summary small,.supplier-decision-note small{font-size:9px;color:#828282;text-transform:uppercase;letter-spacing:.8px}
+.supplier-tracking-grid strong{font-size:12px;line-height:1.45}
+.supplier-status-progress{border:1px solid #303030;border-radius:12px;overflow:hidden}
+.supplier-status-progress>.eyebrow{padding:15px 16px 7px;margin:0}
+.supplier-progress-row{display:flex;align-items:center;gap:13px;padding:14px 16px;border-top:1px solid #2c2c2c}
+.supplier-progress-index{width:30px;height:30px;display:grid;place-items:center;border-radius:8px;border:1px solid #414141;font-size:9px;color:#999}
+.supplier-progress-row>div{display:grid;gap:3px}
+.supplier-progress-row strong{font-size:12px}
+.supplier-progress-row small{font-size:9px;color:#777}
+.supplier-progress-row.done .supplier-progress-index{background:#e4e4e4;color:#111;border-color:#e4e4e4}
+.supplier-progress-row.current{background:#191919}
+.supplier-progress-row.current .supplier-progress-index{border-color:#8d8d8d;color:#ededed}
+.supplier-progress-row.rejected{background:#21191a}
+.supplier-decision-note{padding:16px;border:1px solid #363636;border-radius:10px;background:#151515}
+.supplier-decision-note p{margin:7px 0 0;line-height:1.55;font-size:12px}
+.supplier-approved-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#303030;border:1px solid #303030;border-radius:10px;overflow:hidden}
+.supplier-approved-summary>div{background:#121212;padding:15px;display:grid;gap:6px}
+.supplier-approved-summary strong{font-size:15px}
+.supplier-status-actions{display:flex;flex-wrap:wrap;gap:10px}
+.supplier-status-actions .supplier-back-link{text-decoration:none}
+[data-theme="light"] .supplier-status-intro>p{color:#6d6d6d}
+[data-theme="light"] .supplier-status-card{background:linear-gradient(180deg,#fff,#f7f7f7);border-color:#d2d2d2;box-shadow:0 24px 60px rgba(0,0,0,.08)}
+[data-theme="light"] .supplier-status-banner{background:#f1f1f1;border-color:#d2d2d2}
+[data-theme="light"] .supplier-status-banner span,[data-theme="light"] .supplier-status-banner p{color:#666}
+[data-theme="light"] .supplier-status-banner.rejected{background:#f5eded;border-color:#e1d2d4}
+[data-theme="light"] .supplier-tracking-grid,[data-theme="light"] .supplier-approved-summary{background:#d6d6d6;border-color:#d6d6d6}
+[data-theme="light"] .supplier-tracking-grid>div,[data-theme="light"] .supplier-approved-summary>div{background:#fafafa}
+[data-theme="light"] .supplier-status-progress{border-color:#d4d4d4}
+[data-theme="light"] .supplier-progress-row{border-color:#d8d8d8}
+[data-theme="light"] .supplier-progress-row.current{background:#ededed}
+[data-theme="light"] .supplier-progress-index{border-color:#c7c7c7;color:#666}
+[data-theme="light"] .supplier-progress-row.done .supplier-progress-index{background:#222;color:#fff;border-color:#222}
+[data-theme="light"] .supplier-progress-row.rejected{background:#f5eded}
+[data-theme="light"] .supplier-decision-note{background:#f4f4f4;border-color:#d4d4d4}
+@media(max-width:950px){.supplier-status-wrap{grid-template-columns:1fr;width:min(760px,calc(100% - 40px));padding-top:120px}.supplier-status-intro{position:static}}
+@media(max-width:620px){.supplier-status-wrap{width:calc(100% - 24px);padding-top:100px}.supplier-status-card{padding:20px}.supplier-status-intro h1{font-size:42px;letter-spacing:-2px}.supplier-tracking-grid,.supplier-approved-summary{grid-template-columns:1fr}.supplier-status-head{flex-direction:column}.supplier-status-actions,.supplier-success-actions,.supplier-onboarding-actions{flex-direction:column;align-items:stretch}}
+/* === END VENDOR APPLICATION STATUS DASHBOARD V4 === */

@@ -21,6 +21,14 @@ class Profile(Base):
     active=Column(Boolean,default=True,nullable=False)
     created_at=Column(DateTime(timezone=True),default=now,nullable=False)
     __table_args__=(CheckConstraint("role IN ('requester','procurement','approver','finance_admin','vendor')"),)
+class LocalCredential(Base):
+    __tablename__='local_credentials'
+    id=Column(Integer,primary_key=True)
+    profile_id=fk('profiles',nullable=False,unique=True)
+    password_hash=Column(String(255),nullable=False)
+    active=Column(Boolean,default=True,nullable=False)
+    created_at=Column(DateTime(timezone=True),default=now,nullable=False)
+    last_login_at=Column(DateTime(timezone=True),nullable=True)
 class Vendor(Base):
     __tablename__='vendors'
     id=Column(Integer,primary_key=True)
@@ -29,6 +37,29 @@ class Vendor(Base):
     contact=Column(String(80),default='')
     active=Column(Boolean,default=True,nullable=False)
     created_at=Column(DateTime(timezone=True),default=now)
+class VendorApplication(Base):
+    __tablename__='vendor_applications'
+    id=Column(Integer,primary_key=True)
+    application_number=Column(String(32),unique=True,nullable=False)
+    legal_name=Column(String(120),nullable=False)
+    trading_name=Column(String(120),default='')
+    contact_name=Column(String(120),nullable=False)
+    email=Column(String(254),nullable=False,index=True)
+    phone=Column(String(40),nullable=False)
+    tax_id=Column(String(60),nullable=False,index=True)
+    registration_number=Column(String(80),nullable=False)
+    address=Column(String(500),nullable=False)
+    categories=Column(String(500),nullable=False)
+    website=Column(String(200),default='')
+    years_in_business=Column(Integer,default=0,nullable=False)
+    notes=Column(String(1000),default='')
+    status=Column(String(20),default='PENDING',nullable=False,index=True)
+    submitted_at=Column(DateTime(timezone=True),default=now,nullable=False)
+    reviewed_at=Column(DateTime(timezone=True),nullable=True)
+    reviewer_id=fk('profiles',nullable=True)
+    review_comment=Column(String(2000),nullable=True)
+    vendor_id=fk('vendors',nullable=True,unique=True)
+    __table_args__=(CheckConstraint("status IN ('PENDING','APPROVED','REJECTED')"),)
 class Requisition(Base):
     __tablename__='requisitions'
     id=Column(Integer,primary_key=True)

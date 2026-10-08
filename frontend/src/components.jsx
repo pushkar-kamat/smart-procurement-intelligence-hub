@@ -1,13 +1,44 @@
-import React,{useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {Navigate} from 'react-router-dom';
 import {downloadDocument} from './api';
 export const cash=value=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2}).format(value||0);
 export const human=value=>(value||'').replaceAll('_',' ');
-export function Badge({value}){const text=String(value||'');return <span className={'badge '+(/High|FLAGGED|REJECTED|REVIEW/.test(text)?'danger':/Low|APPROVED|CLOSED|NORMAL|ACTIVE/.test(text)?'good':/NEW_VENDOR|PROVISIONAL|SELECTED/.test(text)?'info':'')}>{human(text)}</span>}
+export function Badge({value}){const text=String(value||'');return <span className={'badge '+(/High|FLAGGED|REJECTED|REVIEW/.test(text)?'danger':/Low|APPROVED|CLOSED|NORMAL|ACTIVE/.test(text)?'good':/NEW_VENDOR|PROVISIONAL|SELECTED|PENDING/.test(text)?'info':'')}>{human(text)}</span>}
 export function Protected({user,children}){return user?children:<Navigate to="/login" replace/>}
 export function RoleAction({user,roles,children}){return roles.includes(user?.role)?children:null}
+
+export function MonoSelect({value,onChange,children,required=false,disabled=false,'aria-label':ariaLabel}){
+  const [open,setOpen]=useState(false);
+  const ref=useRef(null);
+  const options=React.Children.toArray(children).filter(Boolean).map((child)=>({
+    value:String(child.props.value ?? child.props.children ?? ''),
+    label:child.props.children,
+    disabled:Boolean(child.props.disabled),
+  }));
+  const selected=options.find((option)=>option.value===String(value ?? ''));
+  useEffect(()=>{
+    const close=(event)=>{if(ref.current&&!ref.current.contains(event.target))setOpen(false)};
+    document.addEventListener('mousedown',close);
+    return()=>document.removeEventListener('mousedown',close);
+  },[]);
+  const choose=(option)=>{
+    if(option.disabled)return;
+    onChange?.({target:{value:option.value}});
+    setOpen(false);
+  };
+  return <div className={'mono-select'+(open?' open':'')+(disabled?' disabled':'')} ref={ref}>
+    <input className="mono-select-proxy" tabIndex="-1" aria-hidden="true" required={required} value={value ?? ''} readOnly />
+    <button type="button" className="mono-select-trigger" aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={open} disabled={disabled} onClick={()=>setOpen(!open)}>
+      <span className={!selected||selected.value===''?'placeholder':''}>{selected?.label ?? 'Select option'}</span>
+      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m6 8 4 4 4-4"/></svg>
+    </button>
+    {open&&<div className="mono-select-menu" role="listbox" aria-label={ariaLabel}>
+      {options.map((option,index)=><button type="button" role="option" aria-selected={option.value===String(value ?? '')} disabled={option.disabled} className={'mono-select-option'+(option.value===String(value ?? '')?' selected':'')} key={option.value+'-'+index} onClick={()=>choose(option)}>{option.label}</button>)}
+    </div>}
+  </div>
+}
 export function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
 export function Empty({children}){return <div className="empty">{children}</div>}
 export function Docs({documents=[]}){const [error,setError]=useState('');return <div>{error&&<p role="alert" className="error">{error}</p>}{documents.map(d=><div className="document" key={d.id}><button className="link" onClick={()=>downloadDocument(d).catch(e=>setError(e.message))}>{d.original_name} ↗</button><small>SHA-256: {d.sha256}</small></div>)}</div>}
-export function ComparisonMatrix({data}){if(!data?.quotations?.length)return <Empty>Add quotations to start a comparison.</Empty>;return <div className="table-wrap"><table className="matrix"><thead><tr><th>Decision factors</th>{data.quotations.map(q=><th key={q.id}>{q.vendor.name}{Number(q.grand_total)===data.lowest_total&&<span className="lowest">Lowest total</span>}</th>)}</tr></thead><tbody>{data.items.map(item=><tr key={item.id}><th>{item.item_name}<small>{item.quantity} {item.unit} · unit price</small></th>{data.quotations.map(q=>{const line=q.items.find(l=>l.requisition_item_id===item.id);return <td key={q.id}><strong>{cash(line.unit_price)}</strong><Badge value={line.analysis.status}/><details><summary>Price explanation</summary><p>{line.analysis.reason}</p><small>{line.analysis.sample_count} observations · Q1 {cash(line.analysis.q1)} · Q3 {cash(line.analysis.q3)}</small></details></td>})}</tr>)}{[['Subtotal','subtotal'],['Tax','tax_total'],['Discount','discount_total'],['Total payable','grand_total']].map(([label,key])=><tr key={key} className={key==='grand_total'?'total-row':''}><th>{label}</th>{data.quotations.map(q=><td key={q.id}>{cash(q[key])}</td>)}</tr>)}<tr><th>Delivery</th>{data.quotations.map(q=><td key={q.id}>{q.delivery_days} days<small>{q.delivery_terms}</small></td>)}</tr><tr><th>Vendor risk<small>Decision support only</small></th>{data.quotations.map(q=><td key={q.id}><Badge value={q.risk.band}/><strong>{q.risk.score===null?(q.risk.band==='NEW_VENDOR'?'Neutral / new vendor':'Not scored'):q.risk.score+' / 100'}</strong><small>{q.risk.total_orders ?? 0} historical orders · {q.risk.coverage_percent ?? 0}% evidence coverage</small><details><summary>Risk factors</summary>{q.risk.factors.map(f=><p key={f.factor}>{human(f.factor)}: {f.rate_percent===null?'Unknown':f.rate_percent+'%'} · {f.contribution??'—'} points</p>)}</details></td>)}</tr><tr><th>Quotation documents</th>{data.quotations.map(q=><td key={q.id}><Docs documents={q.documents}/>{!q.documents.length&&<small>No attachment</small>}</td>)}</tr></tbody></table></div>}
+export function ComparisonMatrix({data}){if(!data?.quotations?.length)return <Empty>Add quotations to start a comparison.</Empty>;return <div className="table-wrap"><table className="matrix"><thead><tr><th>Decision factors</th>{data.quotations.map(q=><th key={q.id}>{q.vendor.name}{Number(q.grand_total)===data.lowest_total&&<span className="lowest">Lowest total</span>}</th>)}</tr></thead><tbody>{data.items.map(item=><tr key={item.id}><th>{item.item_name}<small>{item.quantity} {item.unit} · unit price</small></th>{data.quotations.map(q=>{const line=q.items.find(l=>l.requisition_item_id===item.id);return <td key={q.id}><strong>{cash(line.unit_price)}</strong><Badge value={line.analysis.status}/><details><summary>Price explanation</summary><p>{line.analysis.reason}</p><small>{line.analysis.sample_count} observations · Q1 {cash(line.analysis.q1)} · Q3 {cash(line.analysis.q3)}</small></details></td>})}</tr>)}{[['Subtotal','subtotal'],['Tax','tax_total'],['Discount','discount_total'],['Total payable','grand_total']].map(([label,key])=><tr key={key} className={key==='grand_total'?'total-row':''}><th>{label}</th>{data.quotations.map(q=><td key={q.id}>{cash(q[key])}</td>)}</tr>)}<tr><th>Delivery</th>{data.quotations.map(q=><td key={q.id}>{q.delivery_days} days<small>{q.delivery_terms}</small></td>)}</tr><tr><th>Vendor risk<small>Decision support only</small></th>{data.quotations.map(q=><td key={q.id}><Badge value={q.risk.band}/><strong>{q.risk.score===null?(q.risk.band==='NEW_VENDOR'?'Provisional · no history penalty':'Not scored'):q.risk.score+' / 100'}</strong><small>{q.risk.total_orders ?? 0} historical orders · {q.risk.coverage_percent ?? 0}% evidence coverage</small><details><summary>Risk factors</summary>{q.risk.factors.map(f=><p key={f.factor}>{human(f.factor)}: {f.rate_percent===null?'Unknown':f.rate_percent+'%'} · {f.contribution??'—'} points</p>)}</details></td>)}</tr><tr><th>Quotation documents</th>{data.quotations.map(q=><td key={q.id}><Docs documents={q.documents}/>{!q.documents.length&&<small>No attachment</small>}</td>)}</tr></tbody></table></div>}
 export function validateRequisition(data){if(data.title.trim().length<3)return 'Enter a title of at least 3 characters.';if(data.justification.trim().length<5)return 'Explain why this purchase is needed.';if(!data.items.length||data.items.some(x=>!x.item_name.trim()||!x.category.trim()||!x.unit.trim()||Number(x.quantity)<=0||Number(x.estimated_unit_price)<=0))return 'Every item needs a name, category, unit and positive quantity and price.';return ''}

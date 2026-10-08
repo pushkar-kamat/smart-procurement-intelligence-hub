@@ -17,16 +17,16 @@ DEPARTMENTS=[
 
 # name, portal email, contact, history profile
 VENDORS=[
-    ('Vertex Equipment','vendor.vertex@example.com','Enterprise Sales · +91 90000 11001',dict(total_orders=36,completed_orders=35,late_deliveries=2,anomalous_lines=2,quotation_lines=54,disputed_orders=1,incomplete_orders=1,invoice_mismatches=1,invoiced_orders=34)),
-    ('Northstar Technologies','vendor.northstar@example.com','Institutional Accounts · +91 90000 11002',dict(total_orders=28,completed_orders=24,late_deliveries=5,anomalous_lines=8,quotation_lines=44,disputed_orders=3,incomplete_orders=4,invoice_mismatches=2,invoiced_orders=23)),
-    ('Bluebell Networks','vendor.bluebell@example.com','Education Desk · +91 90000 11003',dict(total_orders=31,completed_orders=22,late_deliveries=9,anomalous_lines=14,quotation_lines=48,disputed_orders=6,incomplete_orders=9,invoice_mismatches=5,invoiced_orders=21)),
-    ('Cedar Office Systems','vendor.cedar@example.com','Corporate Sales · +91 90000 11004',dict(total_orders=42,completed_orders=40,late_deliveries=3,anomalous_lines=4,quotation_lines=60,disputed_orders=2,incomplete_orders=2,invoice_mismatches=1,invoiced_orders=39)),
-    ('Harbor Business Supply','vendor.harbor@example.com','Institutional Supply · +91 90000 11005',dict(total_orders=25,completed_orders=23,late_deliveries=4,anomalous_lines=5,quotation_lines=36,disputed_orders=2,incomplete_orders=2,invoice_mismatches=2,invoiced_orders=22)),
-    ('Metro Digital Works','vendor.metro@example.com','Solutions Desk · +91 90000 11006',dict(total_orders=33,completed_orders=27,late_deliveries=7,anomalous_lines=10,quotation_lines=46,disputed_orders=4,incomplete_orders=6,invoice_mismatches=3,invoiced_orders=26)),
-    ('Summit Workspace','vendor.summit@example.com','Workspace Sales · +91 90000 11007',dict(total_orders=29,completed_orders=27,late_deliveries=3,anomalous_lines=5,quotation_lines=39,disputed_orders=2,incomplete_orders=2,invoice_mismatches=1,invoiced_orders=26)),
-    ('Juniper Stationery','vendor.juniper@example.com','Institutional Desk · +91 90000 11008',dict(total_orders=48,completed_orders=46,late_deliveries=4,anomalous_lines=3,quotation_lines=65,disputed_orders=1,incomplete_orders=2,invoice_mismatches=2,invoiced_orders=45)),
-    ('Pioneer Electronics','vendor.pioneer@example.com','Enterprise Accounts · +91 90000 11009',dict(total_orders=21,completed_orders=17,late_deliveries=6,anomalous_lines=8,quotation_lines=32,disputed_orders=4,incomplete_orders=4,invoice_mismatches=3,invoiced_orders=17)),
-    ('New Leaf Supplies','vendor.newleaf@example.com','Sales Desk · +91 90000 11010',dict(total_orders=18,completed_orders=16,late_deliveries=2,anomalous_lines=3,quotation_lines=28,disputed_orders=1,incomplete_orders=2,invoice_mismatches=1,invoiced_orders=15)),
+    ('Vertex Equipment','vendor.vertex@procure.com','Enterprise Sales · +91 90000 11001',dict(total_orders=36,completed_orders=35,late_deliveries=2,anomalous_lines=2,quotation_lines=54,disputed_orders=1,incomplete_orders=1,invoice_mismatches=1,invoiced_orders=34)),
+    ('Northstar Technologies','vendor.northstar@procure.com','Institutional Accounts · +91 90000 11002',dict(total_orders=28,completed_orders=24,late_deliveries=5,anomalous_lines=8,quotation_lines=44,disputed_orders=3,incomplete_orders=4,invoice_mismatches=2,invoiced_orders=23)),
+    ('Bluebell Networks','vendor.bluebell@procure.com','Education Desk · +91 90000 11003',dict(total_orders=31,completed_orders=22,late_deliveries=9,anomalous_lines=14,quotation_lines=48,disputed_orders=6,incomplete_orders=9,invoice_mismatches=5,invoiced_orders=21)),
+    ('Cedar Office Systems','vendor.cedar@procure.com','Corporate Sales · +91 90000 11004',dict(total_orders=42,completed_orders=40,late_deliveries=3,anomalous_lines=4,quotation_lines=60,disputed_orders=2,incomplete_orders=2,invoice_mismatches=1,invoiced_orders=39)),
+    ('Harbor Business Supply','vendor.harbor@procure.com','Institutional Supply · +91 90000 11005',dict(total_orders=25,completed_orders=23,late_deliveries=4,anomalous_lines=5,quotation_lines=36,disputed_orders=2,incomplete_orders=2,invoice_mismatches=2,invoiced_orders=22)),
+    ('Metro Digital Works','vendor.metro@procure.com','Solutions Desk · +91 90000 11006',dict(total_orders=33,completed_orders=27,late_deliveries=7,anomalous_lines=10,quotation_lines=46,disputed_orders=4,incomplete_orders=6,invoice_mismatches=3,invoiced_orders=26)),
+    ('Summit Workspace','vendor.summit@procure.com','Workspace Sales · +91 90000 11007',dict(total_orders=29,completed_orders=27,late_deliveries=3,anomalous_lines=5,quotation_lines=39,disputed_orders=2,incomplete_orders=2,invoice_mismatches=1,invoiced_orders=26)),
+    ('Juniper Stationery','vendor.juniper@procure.com','Institutional Desk · +91 90000 11008',dict(total_orders=48,completed_orders=46,late_deliveries=4,anomalous_lines=3,quotation_lines=65,disputed_orders=1,incomplete_orders=2,invoice_mismatches=2,invoiced_orders=45)),
+    ('Pioneer Electronics','vendor.pioneer@procure.com','Enterprise Accounts · +91 90000 11009',dict(total_orders=21,completed_orders=17,late_deliveries=6,anomalous_lines=8,quotation_lines=32,disputed_orders=4,incomplete_orders=4,invoice_mismatches=3,invoiced_orders=17)),
+    ('New Leaf Supplies','vendor.newleaf@procure.com','Sales Desk · +91 90000 11010',dict(total_orders=18,completed_orders=16,late_deliveries=2,anomalous_lines=3,quotation_lines=28,disputed_orders=1,incomplete_orders=2,invoice_mismatches=1,invoiced_orders=15)),
 ]
 
 ALIASES={
@@ -102,7 +102,7 @@ def upsert(db):
 
     rules=[
         ('Purchase committee',0,None,'approver',1),
-        ('Senior finance approval',100000,None,'finance_admin',2),
+        ('Senior finance approval',200000,None,'finance_admin',2),
     ]
     for name,min_amount,max_amount,role,level in rules:
         rule=db.scalar(select(ApprovalRule).where(ApprovalRule.name==name,ApprovalRule.level==level))
