@@ -405,8 +405,21 @@ async def invoice_file(id:int,file:UploadFile=File(...),db:Session=DB,user=FIN):
     inv=fetch(db,Invoice,id);po=fetch(db,PurchaseOrder,inv.purchase_order_id);req=request_for(db,po.requisition_id,user,True);state(req,'INVOICED')
     return await upload_document(db,user,req,file,invoice_id=id)
 @router.get('/documents/{id}')
-def download(id:int,db:Session=DB,user=STAFF):
-    doc=fetch(db,Document,id);request_for(db,doc.requisition_id,user)
+def download(id:int,db:Session=DB,user=USER):
+    doc=fetch(db,Document,id)
+    if user.role == 'vendor':
+        # Vendors can view only quotation evidence belonging to their own
+        # active supplier record. Invoices and competitors' files stay private.
+        vendor=vendor_for_user(db,user)
+        if not doc.quotation_id:
+            raise HTTPException(403,'Vendors may download only their own quotation documents')
+        quotation=fetch(db,Quotation,doc.quotation_id)
+        if quotation.vendor_id!=vendor.id or quotation.requisition_id!=doc.requisition_id:
+            raise HTTPException(403,'This document belongs to another vendor')
+    elif user.role in ('requester','procurement','approver','finance_admin'):
+        request_for(db,doc.requisition_id,user)
+    else:
+        raise HTTPException(403,'Your role is not permitted to perform this action')
     return Response(storage.read(doc),media_type=doc.content_type,headers={'Content-Disposition':f'attachment; filename="document-{id}"','X-Document-SHA256':doc.sha256,'X-Content-Type-Options':'nosniff'})
 @router.get('/requisitions/{id}/audit')
 def logs(id:int,db:Session=DB,user=STAFF):

@@ -20,6 +20,8 @@ class Settings:
     local_auth_secret = os.getenv('LOCAL_AUTH_SECRET', '')
     local_auth_token_minutes = int(os.getenv('LOCAL_AUTH_TOKEN_MINUTES', '480'))
     storage_backend = os.getenv('STORAGE_BACKEND', 'local')
+    aws_region = os.getenv('AWS_REGION', 'ap-south-1')
+    s3_bucket = os.getenv('S3_BUCKET', '')
     upload_dir = os.getenv('LOCAL_UPLOAD_DIR', './uploads')
     bucket = os.getenv('SUPABASE_STORAGE_BUCKET', 'procurement-documents')
     max_upload = int(os.getenv('MAX_UPLOAD_MB', '10')) * 1024 * 1024

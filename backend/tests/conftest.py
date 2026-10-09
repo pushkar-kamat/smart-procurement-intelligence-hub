@@ -16,6 +16,9 @@ from app.seed import seed
 def env(tmp_path,monkeypatch):
     from app.core.config import settings
     monkeypatch.setattr(settings,'upload_dir',str(tmp_path/'uploads'))
+    # Tests must not upload to real AWS or depend on the developer's active auth mode.
+    monkeypatch.setattr(settings,'storage_backend','local')
+    monkeypatch.setattr(settings,'auth_provider','supabase')
     test_url=os.getenv('TEST_DATABASE_URL')
     schema=None
     if test_url:
